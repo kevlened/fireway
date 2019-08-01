@@ -22,7 +22,7 @@
     "emulator": "firebase serve --only firestore",
     "test-runner": "node tests",
     "test": "FIRESTORE_EMULATOR_HOST=localhost:8080 start-test emulator tcp:8080 test-runner",
-    "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm publish"
+    "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
   },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.4",
