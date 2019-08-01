@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const sade = require('sade');
 const fireway = require('./index');
 const pkg = require('../package.json');
@@ -52,4 +54,4 @@ prog
 //     console.log('~> Validates the migration info...');
 //   });
 
-module.exports = prog;
+prog.parse(process.argv);
