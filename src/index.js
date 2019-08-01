@@ -38,7 +38,7 @@ function proxyWritableMethods(dryrun) {
         if (!dryrun) return ogDelete.call(this, doc);
     };
     
-    const ogAdd = DocumentReference.prototype.add;
+    const ogAdd = CollectionReference.prototype.add;
     CollectionReference.prototype.add = function(doc) {
         console.log('Adding', JSON.stringify(doc));
         if (!dryrun) return ogAdd.call(this, doc);
