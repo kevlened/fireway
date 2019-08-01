@@ -3,7 +3,7 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
-const {Firestore} = require('@google-cloud/firestore');
+const {Firestore, DocumentReference, CollectionReference} = require('@google-cloud/firestore');
 const semver = require('semver');
 
 const readFile = util.promisify(fs.readFile);
@@ -11,7 +11,41 @@ const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 const exists = util.promisify(fs.exists);
 
-async function migrate({dir, projectId} = {}) {
+function proxyWritableMethods(dryrun) {
+    dryrun && console.log('Making firestore read-only');
+
+    const ogCreate = DocumentReference.prototype.create;
+    DocumentReference.prototype.create = function(doc) {
+        console.log('Creating', JSON.stringify(doc));
+        if (!dryrun) return ogCreate.call(this, doc);
+    };
+
+    const ogSet = DocumentReference.prototype.set;
+    DocumentReference.prototype.set = function(doc, opts = {}) {
+        console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
+        if (!dryrun) return ogSet.call(this, doc, opts);
+    };
+
+    const ogUpdate = DocumentReference.prototype.update;
+    DocumentReference.prototype.update = function(doc) {
+        console.log('Updating', this.path, JSON.stringify(doc));
+        if (!dryrun) return ogUpdate.call(this, doc);
+    };
+
+    const ogDelete = DocumentReference.prototype.delete;
+    DocumentReference.prototype.delete = function() {
+        console.log('Deleting', this.path);
+        if (!dryrun) return ogDelete.call(this, doc);
+    };
+    
+    const ogAdd = DocumentReference.prototype.add;
+    CollectionReference.prototype.add = function(doc) {
+        console.log('Adding', JSON.stringify(doc));
+        if (!dryrun) return ogAdd.call(this, doc);
+    };
+}
+
+async function migrate({dir, projectId, dryrun} = {}) {
     if (!dir) {
         dir = './migrations';
         console.log(`Defaulting dir to ${dir}`);
@@ -61,7 +95,9 @@ async function migrate({dir, projectId} = {}) {
     console.log(`Found ${files.length} migration files`);
 
     // Find the files after the latest migration number
+    proxyWritableMethods(dryrun);
     const firestore = new Firestore({projectId});
+
     const collection = firestore.collection('fireway');
 
     // Get the latest migration
