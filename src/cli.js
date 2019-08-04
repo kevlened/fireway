@@ -7,12 +7,18 @@ const pkg = require('../package.json');
 const prog = sade('fireway').version(pkg.version);
 
 prog
-    .command('migrate [dir]')
+    .command('migrate')
+    .option('--path', 'Path to migration files', './migrations')
     .option('--projectId', 'Target firebase project')
+    .option('--dryrun', 'Simulates changes')
     .describe('Migrates schema to the latest version')
-    .action(async (dir, opts) => {
+    .example('migrate')
+    .example('migrate --path=./my-migrations')
+    .example('migrate --projectId=my-staging-id')
+    .example('migrate --dryrun')
+    .action(async (opts) => {
         try {
-            await fireway.migrate({dir, ...opts})
+            await fireway.migrate(opts)
         } catch (e) {
             console.log('ERROR:', e.message);
             process.exit(1);

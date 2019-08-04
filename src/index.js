@@ -45,11 +45,7 @@ function proxyWritableMethods(dryrun) {
     };
 }
 
-async function migrate({dir, projectId, dryrun} = {}) {
-    if (!dir) {
-        dir = './migrations';
-        console.log(`Defaulting dir to ${dir}`);
-    }
+async function migrate({path: dir, projectId, dryrun} = {}) {
 
     // Get all the scripts
     if (!path.isAbsolute(dir)) {

@@ -61,7 +61,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     // Empty migration
     await fireway.migrate({
         projectId,
-        dir: __dirname + '/emptyMigration'
+        path: __dirname + '/emptyMigration'
     });
     let snapshot = await firestore.collection('fireway').get();
     t.equal(snapshot.size, 0);
@@ -69,7 +69,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     // First migration
     await fireway.migrate({
         projectId,
-        dir: __dirname + '/oneMigration'
+        path: __dirname + '/oneMigration'
     });
     snapshot = await firestore.collection('fireway').get();
     let dataSnapshot = await firestore.collection('data').get();
@@ -96,7 +96,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     // Second migration
     await fireway.migrate({
         projectId,
-        dir: __dirname + '/iterativeMigration'
+        path: __dirname + '/iterativeMigration'
     });
     snapshot = await firestore.collection('fireway').get();
     dataSnapshot = await firestore.collection('data').get();
@@ -127,7 +127,7 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore}) => {
     try {
         await fireway.migrate({
             projectId,
-            dir: __dirname + '/errorMigration'
+            path: __dirname + '/errorMigration'
         });
         t.fail('Should throw an error');
     } catch (e) {
@@ -153,7 +153,7 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore}) => {
     try {
         await fireway.migrate({
             projectId,
-            dir: __dirname + '/errorIterativeMigration'
+            path: __dirname + '/errorIterativeMigration'
         });
         t.fail('Should throw an error');
     } catch (e) {
