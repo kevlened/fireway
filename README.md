@@ -55,8 +55,8 @@ Migration file name format: `v[semver]__[description].js`
 
 ```js
 // each script gets a pre-configured firestore admin instance
-module.exports.migrate = async ({firestore}) => {
-    await firestore.collection('name').add({key: 'value'});
+module.exports.migrate = async ({firestore, FieldValue}) => {
+    await firestore.collection('name').add({key: FieldValue.serverTimestamp()});
 };
 ```
 
