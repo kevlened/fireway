@@ -3,7 +3,7 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
-const {Firestore, DocumentReference, CollectionReference} = require('@google-cloud/firestore');
+const {Firestore, DocumentReference, CollectionReference, WriteBatch} = require('@google-cloud/firestore');
 const semver = require('semver');
 
 const readFile = util.promisify(fs.readFile);
@@ -14,34 +14,41 @@ const exists = util.promisify(fs.exists);
 function proxyWritableMethods(dryrun) {
     dryrun && console.log('Making firestore read-only');
 
+    const ogCommit_ = WriteBatch.prototype.commit_;
+    WriteBatch.prototype.commit_ = async function() {
+        if (dryrun) return [];
+        return ogCommit_.apply(this, Array.from(arguments));
+    };
+
+    // Add logs for each item
     const ogCreate = DocumentReference.prototype.create;
     DocumentReference.prototype.create = function(doc) {
         console.log('Creating', JSON.stringify(doc));
-        if (!dryrun) return ogCreate.call(this, doc);
+        return ogCreate.call(this, doc);
     };
 
     const ogSet = DocumentReference.prototype.set;
     DocumentReference.prototype.set = function(doc, opts = {}) {
         console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
-        if (!dryrun) return ogSet.call(this, doc, opts);
+        return ogSet.call(this, doc, opts);
     };
 
     const ogUpdate = DocumentReference.prototype.update;
     DocumentReference.prototype.update = function(doc) {
         console.log('Updating', this.path, JSON.stringify(doc));
-        if (!dryrun) return ogUpdate.call(this, doc);
+        return ogUpdate.call(this, doc);
     };
 
     const ogDelete = DocumentReference.prototype.delete;
     DocumentReference.prototype.delete = function() {
         console.log('Deleting', this.path);
-        if (!dryrun) return ogDelete.call(this, doc);
+        return ogDelete.call(this, doc);
     };
     
     const ogAdd = CollectionReference.prototype.add;
     CollectionReference.prototype.add = function(doc) {
         console.log('Adding', JSON.stringify(doc));
-        if (!dryrun) return ogAdd.call(this, doc);
+        return ogAdd.call(this, doc);
     };
 }
 
