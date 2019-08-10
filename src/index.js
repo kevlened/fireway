@@ -11,7 +11,7 @@ const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 const exists = util.promisify(fs.exists);
 
-function proxyWritableMethods(dryrun) {
+function proxyWritableMethods(dryrun, stats) {
     dryrun && console.log('Making firestore read-only');
 
     const ogCommit_ = WriteBatch.prototype.commit_;
@@ -23,36 +23,50 @@ function proxyWritableMethods(dryrun) {
     // Add logs for each item
     const ogCreate = DocumentReference.prototype.create;
     DocumentReference.prototype.create = function(doc) {
+        stats.created += 1;
         console.log('Creating', JSON.stringify(doc));
         return ogCreate.call(this, doc);
     };
 
     const ogSet = DocumentReference.prototype.set;
     DocumentReference.prototype.set = function(doc, opts = {}) {
+        stats.set += 1;
         console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
         return ogSet.call(this, doc, opts);
     };
 
     const ogUpdate = DocumentReference.prototype.update;
     DocumentReference.prototype.update = function(doc) {
+        stats.updated += 1;
         console.log('Updating', this.path, JSON.stringify(doc));
         return ogUpdate.call(this, doc);
     };
 
     const ogDelete = DocumentReference.prototype.delete;
     DocumentReference.prototype.delete = function() {
+        stats.deleted += 1;
         console.log('Deleting', this.path);
         return ogDelete.call(this, doc);
     };
     
     const ogAdd = CollectionReference.prototype.add;
     CollectionReference.prototype.add = function(doc) {
+        stats.added += 1;
         console.log('Adding', JSON.stringify(doc));
         return ogAdd.call(this, doc);
     };
 }
 
 async function migrate({path: dir, projectId, dryrun} = {}) {
+    const stats = {
+        scannedFiles: 0,
+        executedFiles: 0,
+        created: 0,
+        set: 0,
+        updated: 0,
+        deleted: 0,
+        added: 0
+    };
 
     // Get all the scripts
     if (!path.isAbsolute(dir)) {
@@ -95,10 +109,11 @@ async function migrate({path: dir, projectId, dryrun} = {}) {
         };
     }).filter(Boolean);
 
-    console.log(`Found ${files.length} migration files`);
+    stats.scannedFiles = files.length;
+    console.log(`Found ${stats.scannedFiles} migration files`);
 
     // Find the files after the latest migration number
-    proxyWritableMethods(dryrun);
+    proxyWritableMethods(dryrun, stats);
     const firestore = new Firestore({projectId});
 
     const collection = firestore.collection('fireway');
@@ -130,6 +145,7 @@ async function migrate({path: dir, projectId, dryrun} = {}) {
 
     // Execute them in order
     for (const file of files) {
+        stats.executedFiles += 1;
         console.log('Running', file.filename);
         const migration = require(file.path);
 
@@ -168,7 +184,10 @@ async function migrate({path: dir, projectId, dryrun} = {}) {
         }
     }
 
+    const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
     console.log('Finished all firestore migrations');
+    console.log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
+    console.log(`Docs added:${added} created:${created} updated:${updated} set:${set - 1} deleted:${deleted}`);
 }
 
 module.exports = {migrate};
