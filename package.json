@@ -8,9 +8,9 @@
     "firestore"
   ],
   "files": [
-      "/src",
-      "LICENSE",
-      "README.md"
+    "/src",
+    "LICENSE",
+    "README.md"
   ],
   "main": "src/index.js",
   "bin": "src/cli.js",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.4",
+    "firebase-admin": "^8.3.0",
     "md5": "^2.2.1",
     "sade": "^1.6.1",
     "semver": "^6.3.0"

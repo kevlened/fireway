@@ -3,6 +3,7 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
+const admin = require('firebase-admin');
 const {Firestore, DocumentReference, CollectionReference, WriteBatch, FieldValue, FieldPath} = require('@google-cloud/firestore');
 const semver = require('semver');
 
@@ -57,7 +58,7 @@ function proxyWritableMethods(dryrun, stats) {
     };
 }
 
-async function migrate({path: dir, projectId, dryrun} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) {
     const stats = {
         scannedFiles: 0,
         executedFiles: 0,
@@ -114,6 +115,19 @@ async function migrate({path: dir, projectId, dryrun} = {}) {
 
     // Find the files after the latest migration number
     proxyWritableMethods(dryrun, stats);
+
+    if (!storageBucket && projectId) {
+        storageBucket = `${projectId}.appspot.com`;
+    }
+    
+    if (!app) {
+        app = admin.initializeApp({
+            projectId,
+            storageBucket
+        });
+    }
+
+    // Use Firestore directly so we can mock for dryruns
     const firestore = new Firestore({projectId});
 
     const collection = firestore.collection('fireway');
@@ -152,7 +166,7 @@ async function migrate({path: dir, projectId, dryrun} = {}) {
         const start = new Date();
         let success, finish;
         try {
-            await migration.migrate({firestore, FieldValue, FieldPath});
+            await migration.migrate({app, firestore, FieldValue, FieldPath});
             success = true;
         } catch(e) {
             console.log(`Error in ${file.filename}`, e);

@@ -24,7 +24,7 @@ async function setup() {
     const projectId = `fireway-test-${Date.now()}`;
     const app = await firebase.initializeAdminApp({projectId});
     const firestore = app.firestore();
-    return {projectId, firestore};
+    return {projectId, firestore, app};
 }
 
 async function assertData(t, firestore, path, value) {
@@ -57,11 +57,12 @@ async function assertData(t, firestore, path, value) {
     t.deepEqual(data, value);
 }
 
-test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
+test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
     // Empty migration
     await fireway.migrate({
         projectId,
-        path: __dirname + '/emptyMigration'
+        path: __dirname + '/emptyMigration',
+        app
     });
     let snapshot = await firestore.collection('fireway').get();
     t.equal(snapshot.size, 0);
@@ -69,7 +70,8 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     // First migration
     await fireway.migrate({
         projectId,
-        path: __dirname + '/oneMigration'
+        path: __dirname + '/oneMigration',
+        app
     });
     snapshot = await firestore.collection('fireway').get();
     let dataSnapshot = await firestore.collection('data').get();
@@ -96,7 +98,8 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     // Second migration
     await fireway.migrate({
         projectId,
-        path: __dirname + '/iterativeMigration'
+        path: __dirname + '/iterativeMigration',
+        app
     });
     snapshot = await firestore.collection('fireway').get();
     dataSnapshot = await firestore.collection('data').get();
@@ -123,11 +126,12 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore}) => {
     });
 }));
 
-test('merge: error iterative', wrapper(async ({t, projectId, firestore}) => {
+test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) => {
     try {
         await fireway.migrate({
             projectId,
-            path: __dirname + '/errorMigration'
+            path: __dirname + '/errorMigration',
+            app
         });
         t.fail('Should throw an error');
     } catch (e) {
@@ -153,7 +157,8 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore}) => {
     try {
         await fireway.migrate({
             projectId,
-            path: __dirname + '/errorIterativeMigration'
+            path: __dirname + '/errorIterativeMigration',
+            app
         });
         t.fail('Should throw an error');
     } catch (e) {
