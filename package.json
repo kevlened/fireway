@@ -1,6 +1,6 @@
 {
   "name": "fireway",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Schema migration tool for Firestore",
   "keywords": [
     "schema",
