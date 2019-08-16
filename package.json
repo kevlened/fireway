@@ -24,6 +24,11 @@
     "test": "FIRESTORE_EMULATOR_HOST=localhost:8080 start-test emulator tcp:8080 test-runner",
     "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "yarn test"
+    }
+  },
   "dependencies": {
     "@google-cloud/firestore": "^2.2.4",
     "firebase-admin": "^8.3.0",
@@ -34,6 +39,7 @@
   "devDependencies": {
     "@firebase/testing": "^0.11.8",
     "firebase-tools": "^7.2.2",
+    "husky": "^3.0.3",
     "start-server-and-test": "^1.9.1",
     "tape": "^4.11.0"
   }
