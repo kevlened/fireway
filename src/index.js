@@ -120,6 +120,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
         storageBucket = `${projectId}.appspot.com`;
     }
     
+    const providedApp = app;
     if (!app) {
         app = admin.initializeApp({
             projectId,
@@ -196,6 +197,11 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
         if (!success) {
             throw new Error('Stopped at first failure');
         }
+    }
+
+    // Ensure firebase terminates
+    if (!providedApp) {
+        app.delete();
     }
 
     const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
