@@ -165,7 +165,14 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     for (const file of files) {
         stats.executedFiles += 1;
         console.log('Running', file.filename);
-        const migration = require(file.path);
+        
+        let migration;
+        try {
+            migration = require(file.path);
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
 
         const start = new Date();
         let success, finish;
