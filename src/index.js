@@ -47,7 +47,7 @@ function proxyWritableMethods(dryrun, stats) {
     DocumentReference.prototype.delete = function() {
         stats.deleted += 1;
         console.log('Deleting', this.path);
-        return ogDelete.call(this, doc);
+        return ogDelete.call(this);
     };
     
     const ogAdd = CollectionReference.prototype.add;

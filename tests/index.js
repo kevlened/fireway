@@ -168,3 +168,5 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) =>
         t.equal(dataSnapshot.size, 0);
     }
 }));
+
+// TODO: write test for delete()
