@@ -19,9 +19,9 @@
   "license": "MIT",
   "scripts": {
     "setup": "firebase setup:emulators:firestore",
-    "emulator": "firebase serve --only firestore",
+    "emulator": "firebase emulators:start --only firestore",
     "test-runner": "node tests",
-    "test": "FIRESTORE_EMULATOR_HOST=localhost:8080 start-test emulator tcp:8080 test-runner",
+    "test": "FIRESTORE_EMULATOR_HOST=localhost:8181 start-test emulator tcp:8181 test-runner",
     "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
   },
   "husky": {
@@ -37,10 +37,10 @@
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@firebase/testing": "^0.11.8",
-    "firebase-tools": "^7.2.2",
-    "husky": "^3.0.3",
-    "start-server-and-test": "^1.9.1",
-    "tape": "^4.11.0"
+    "@firebase/testing": "^0.19.1",
+    "firebase-tools": "^8.1.1",
+    "husky": "^4.2.5",
+    "start-server-and-test": "^1.11.0",
+    "tape": "^4.13.2"
   }
 }
