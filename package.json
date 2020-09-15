@@ -30,15 +30,15 @@
     }
   },
   "dependencies": {
-    "@google-cloud/firestore": "^2.2.4",
-    "firebase-admin": "^8.3.0",
+    "@google-cloud/firestore": "4.2.0",
+    "firebase-admin": "9.2.0",
     "md5": "^2.2.1",
     "sade": "^1.6.1",
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@firebase/testing": "^0.19.1",
-    "firebase-tools": "^8.1.1",
+    "@firebase/testing": "^0.20.11",
+    "firebase-tools": "^8.10.0",
     "husky": "^4.2.5",
     "start-server-and-test": "^1.11.0",
     "tape": "^4.13.2"
