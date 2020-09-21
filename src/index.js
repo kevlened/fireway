@@ -4,7 +4,7 @@ const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
 const admin = require('firebase-admin');
-const {Firestore, DocumentReference, CollectionReference, WriteBatch, FieldValue, FieldPath} = require('@google-cloud/firestore');
+const {Firestore, DocumentReference, CollectionReference, WriteBatch, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
 
 const readFile = util.promisify(fs.readFile);
@@ -177,7 +177,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
         const start = new Date();
         let success, finish;
         try {
-            await migration.migrate({app, firestore, FieldValue, FieldPath});
+            await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp});
             success = true;
         } catch(e) {
             console.log(`Error in ${file.filename}`, e);
