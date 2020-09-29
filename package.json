@@ -21,6 +21,7 @@
     "setup": "firebase setup:emulators:firestore",
     "emulator": "firebase emulators:start --only firestore",
     "test-runner": "node tests",
+    "pretest": "mkdir -p tests/emptyMigration",
     "test": "FIRESTORE_EMULATOR_HOST=localhost:8181 start-test emulator tcp:8181 test-runner",
     "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
   },
@@ -30,15 +31,15 @@
     }
   },
   "dependencies": {
-    "@google-cloud/firestore": "4.2.0",
-    "firebase-admin": "9.2.0",
+    "@google-cloud/firestore": "^4.2.0",
+    "firebase-admin": "^9.2.0",
     "md5": "^2.2.1",
     "sade": "^1.6.1",
     "semver": "^6.3.0"
   },
   "devDependencies": {
-    "@firebase/testing": "^0.20.11",
-    "firebase-tools": "^8.10.0",
+    "@firebase/rules-unit-testing": "^1.0.4",
+    "firebase-tools": "^8.11.2",
     "husky": "^4.2.5",
     "start-server-and-test": "^1.11.0",
     "tape": "^4.13.2"

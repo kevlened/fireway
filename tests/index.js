@@ -1,5 +1,5 @@
 const test = require('tape');
-const firebase = require('@firebase/testing');
+const firebase = require('@firebase/rules-unit-testing');
 const fireway = require('../');
 
 function wrapper(fn) {
@@ -15,7 +15,7 @@ function wrapper(fn) {
             t.fail(e);
         } finally {
             t.end();
-            result && result.firestore.disableNetwork();
+            result.firestore.disableNetwork?.();
         }
     }
 }
