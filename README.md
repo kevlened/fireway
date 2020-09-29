@@ -55,6 +55,7 @@ Migration file name format: `v[semver]__[description].js`
 
 ```js
 // each script gets a pre-configured firestore admin instance
+// possible params: app, firestore, FieldValue, FieldPath, Timestamp
 module.exports.migrate = async ({firestore, FieldValue}) => {
     await firestore.collection('name').add({key: FieldValue.serverTimestamp()});
 };
