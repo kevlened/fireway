@@ -1,6 +1,6 @@
 const test = require('tape');
 const firebase = require('@firebase/rules-unit-testing');
-const fireway = require('../');
+let fireway = require('../');
 
 function wrapper(fn) {
     return async (t) => {
@@ -21,6 +21,10 @@ function wrapper(fn) {
 }
 
 async function setup() {
+    // Clear the require cache
+    Object.keys(require.cache).map(key => { delete require.cache[key]; });
+    fireway = require('../');
+
     const projectId = `fireway-test-${Date.now()}`;
     const app = await firebase.initializeAdminApp({projectId});
     const firestore = app.firestore();
@@ -183,4 +187,27 @@ test('dryrun', wrapper(async ({t, projectId, firestore, app}) => {
     t.equal(dataSnapshot.size, 0);
 }));
 
-// TODO: write test for delete()
+test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
+    await fireway.migrate({
+        projectId,
+        path: __dirname + '/oneMigration',
+        app
+    });
+
+    let snapshot = await firestore.collection('fireway').get();
+    let dataSnapshot = await firestore.collection('data').get();
+    t.equal(snapshot.size, 1);
+    t.equal(dataSnapshot.size, 1);
+
+    await fireway.migrate({
+        dryrun: true,
+        projectId,
+        path: __dirname + '/deleteMigration',
+        app
+    });
+
+    snapshot = await firestore.collection('fireway').get();
+    dataSnapshot = await firestore.collection('data').get();
+    t.equal(snapshot.size, 1);
+    t.equal(dataSnapshot.size, 1);
+}));

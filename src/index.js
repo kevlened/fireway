@@ -12,6 +12,9 @@ const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 const exists = util.promisify(fs.exists);
 
+// FIXME:
+//      if called multiple times, the output is logged multiple times
+//      if you try to proxy once, stats aren't updated on new instances
 function proxyWritableMethods(dryrun, stats) {
     dryrun && console.log('Making firestore read-only');
 
