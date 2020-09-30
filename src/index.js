@@ -187,7 +187,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
         const start = new Date();
         let success, finish;
         try {
-            await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp});
+            await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
             success = true;
         } catch(e) {
             console.log(`Error in ${file.filename}`, e);
