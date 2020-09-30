@@ -126,6 +126,49 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
     });
 }));
 
+test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) => {
+    try {
+        await fireway.migrate({
+            projectId,
+            path: __dirname + '/errorMigration',
+            app
+        });
+        t.fail('Should throw an error');
+    } catch (e) {
+        const snapshot = await firestore.collection('fireway').get();
+        t.equal(snapshot.size, 1);
+        await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+            checksum: '82c81f69f2c5276ef1eefff58c62ce5a',
+            description: 'error',
+            execution_time: 251,
+            installed_by: 'len',
+            installed_on: {
+                seconds: 1564681117,
+                nanoseconds: 401000000
+            },
+            installed_rank: 0,
+            script: 'v0__error.js',
+            success: false,
+            type: 'js',
+            version: '0.0.0'
+        });
+    }
+
+    try {
+        await fireway.migrate({
+            projectId,
+            path: __dirname + '/errorIterativeMigration',
+            app
+        });
+        t.fail('Should throw an error');
+    } catch (e) {
+        const snapshot = await firestore.collection('fireway').get();
+        const dataSnapshot = await firestore.collection('data').get();
+        t.equal(snapshot.size, 1);
+        t.equal(dataSnapshot.size, 0);
+    }
+}));
+
 test('dryrun', wrapper(async ({t, projectId, firestore, app}) => {
     await fireway.migrate({
         dryrun: true,
