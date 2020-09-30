@@ -15,10 +15,10 @@ const exists = util.promisify(fs.exists);
 function proxyWritableMethods(dryrun, stats) {
     dryrun && console.log('Making firestore read-only');
 
-    const ogCommit_ = WriteBatch.prototype.commit_;
-    WriteBatch.prototype.commit_ = async function() {
+    const ogCommit = WriteBatch.prototype._commit;
+    WriteBatch.prototype._commit = async function() {
         if (dryrun) return [];
-        return ogCommit_.apply(this, Array.from(arguments));
+        return ogCommit.apply(this, Array.from(arguments));
     };
 
     // Add logs for each item
