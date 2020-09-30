@@ -211,3 +211,18 @@ test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
     t.equal(snapshot.size, 1);
     t.equal(dataSnapshot.size, 1);
 }));
+
+test('invalid name', wrapper(async ({t, projectId, firestore, app}) => {
+    try {
+        await fireway.migrate({
+            projectId,
+            path: __dirname + '/invalidNameMigration',
+            app
+        });
+        t.fail('Should throw an error');
+    } catch (e) {
+        t.assert(/This filename doesn't match the required format.*/.test(e.message));
+        const snapshot = await firestore.collection('fireway').get();
+        t.equal(snapshot.size, 0);
+    }
+}));

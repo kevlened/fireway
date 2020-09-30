@@ -92,14 +92,21 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     const versionToFile = new Map();
     let files = filenames.map(filename => {
         const [filenameVersion, description] = filename.split('__');
+        const coerced = semver.coerce(filenameVersion);
+
+        if (!coerced) {
+            if (description) {
+                // If there's a description, we assume you meant to use this file
+                console.log(`WARNING: ${filename} doesn't have a valid semver version`);
+            }
+            return null;
+        }
+
+        // If there's a version, but no description, we have an issue
         if (!description) {
             throw new Error(`This filename doesn't match the required format: ${filename}`);
         }
-        const coerced = semver.coerce(filenameVersion);
-        if (!coerced) {
-            console.log(`WARNING: ${filename} doesn't have a valid semver version`);
-            return null;
-        }
+
         const {version} = coerced;
 
         const existingFile = versionToFile.get(version);
