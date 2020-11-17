@@ -91,6 +91,9 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     // Parse the version numbers from the script filenames
     const versionToFile = new Map();
     let files = filenames.map(filename => {
+        // Skip files that start with a dot
+        if (filename[0] === '.') return;
+        
         const [filenameVersion, description] = filename.split('__');
         const coerced = semver.coerce(filenameVersion);
 
