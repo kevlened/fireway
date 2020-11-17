@@ -61,6 +61,13 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 };
 ```
 
+## Migration logic
+
+1. Gather all the migration files and sort them according to semver
+2. Find the last migration in the `fireway` collection
+3. If the last migration failed, stop. (remove the failed migration result or restore the db to continue)
+4. Run the migration scripts since the last migration
+
 ## Migration results
 
 Migration results are stored in the `fireway` collection in `firestore`
@@ -81,13 +88,6 @@ Migration results are stored in the `fireway` collection in `firestore`
   version: '0.0.1'
 }
 ```
-
-## Migration logic
-
-1. Gather all the migration files and sort them according to semver
-2. Find the last migration in the `fireway` collection
-3. If the last migration failed, stop. (remove the failed result or restore the db to continue)
-4. Run the migration scripts since the last migration
 
 ## Contributing
 
