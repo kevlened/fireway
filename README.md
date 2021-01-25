@@ -61,6 +61,16 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 };
 ```
 
+## Running Locally
+
+Typically, `fireway` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 
+However, most likely you'll want to test your migration scripts _locally_ first before running them against your actual (presumably, production) instances. 
+If you are using the [Firestore emulator](https://firebase.google.com/docs/emulator-suite/connect_firestore), define the FIRESTORE_EMULATOR_HOST environment variable, e.g.:
+
+`export FIRESTORE_EMULATOR_HOST="localhost:8080"`
+
+The firestore node library will connect to your local instance. This way, you don't need a project ID and migrations will be run against your emulator instance. This works since `fireway` is built on the [firestore node library](https://www.npmjs.com/package/@google-cloud/firestore). 
+
 ## Migration logic
 
 1. Gather all the migration files and sort them according to semver
