@@ -61,7 +61,7 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 };
 ```
 
-## Running Locally
+## Running locally
 
 Typically, `fireway` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 
 However, most likely you'll want to test your migration scripts _locally_ first before running them against your actual (presumably, production) instances. 
