@@ -231,6 +231,8 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     console.log('Finished all firestore migrations');
     console.log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
     console.log(`Docs added:${added} created:${created} updated:${updated} set:${set - executedFiles} deleted:${deleted}`);
+
+    return stats;
 }
 
 module.exports = {migrate};
