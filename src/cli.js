@@ -18,6 +18,7 @@ prog
     .example('migrate --dryrun')
     .action(async (opts) => {
         try {
+            // TODO: provide app instance here in ops, dryRun
             await fireway.migrate(opts)
         } catch (e) {
             console.log('ERROR:', e.message);
