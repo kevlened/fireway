@@ -63,7 +63,7 @@ async function assertData(t, firestore, path, value) {
 
 test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
     // Empty migration
-    await fireway.migrate({
+    const stats0 = await fireway.migrate({
         projectId,
         path: __dirname + '/emptyMigration',
         app
@@ -72,7 +72,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
     t.equal(snapshot.size, 0);
 
     // First migration
-    await fireway.migrate({
+    const stats1 = await fireway.migrate({
         projectId,
         path: __dirname + '/oneMigration',
         app
@@ -100,7 +100,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
     });
 
     // Second migration
-    await fireway.migrate({
+    const stats2 = await fireway.migrate({
         projectId,
         path: __dirname + '/iterativeMigration',
         app
@@ -127,6 +127,34 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
         success: true,
         type: 'js',
         version: '0.1.0'
+    });
+
+    t.deepEqual(stats0, {
+        scannedFiles: 0,
+        executedFiles: 0,
+        created: 0,
+        set: 0,
+        updated: 0,
+        deleted: 0,
+        added: 0
+    });
+    t.deepEqual(stats1, {
+        scannedFiles: 1,
+        executedFiles: 1,
+        created: 0,
+        set: 2,
+        updated: 0,
+        deleted: 0,
+        added: 0
+    });
+    t.deepEqual(stats2, {
+        scannedFiles: 2,
+        executedFiles: 1,
+        created: 0,
+        set: 2,
+        updated: 0,
+        deleted: 0,
+        added: 0
     });
 }));
 
