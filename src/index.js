@@ -12,51 +12,79 @@ const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 const exists = util.promisify(fs.exists);
 
-// FIXME:
-//      if called multiple times, the output is logged multiple times
-//      if you try to proxy once, stats aren't updated on new instances
-function proxyWritableMethods(dryrun, stats) {
-    dryrun && console.log('Making firestore read-only');
+// Track stats and dryrun setting so we only proxy once.
+// Multiple proxies would create a memory leak.
+const statsDryrunMap = new Map();
+
+let proxied = false;
+function proxyWritableMethods() {
+    // Only proxy once
+    if (proxied) return;
+    else proxied = true;
 
     const ogCommit = WriteBatch.prototype._commit;
     WriteBatch.prototype._commit = async function() {
-        if (dryrun) return [];
+        for (const [stats, dryrun] of statsDryrunMap.entries()) {
+            if (this._firestore._fireway_stats === stats) {
+                if (dryrun) return [];
+            }
+        }
         return ogCommit.apply(this, Array.from(arguments));
     };
 
     // Add logs for each item
     const ogCreate = DocumentReference.prototype.create;
     DocumentReference.prototype.create = function(doc) {
-        stats.created += 1;
-        console.log('Creating', JSON.stringify(doc));
+        for (const stats of statsDryrunMap.keys()) {
+            if (this._firestore._fireway_stats === stats) {
+                stats.created += 1;
+                console.log('Creating', JSON.stringify(doc));
+            }
+        }
         return ogCreate.call(this, doc);
     };
 
     const ogSet = DocumentReference.prototype.set;
     DocumentReference.prototype.set = function(doc, opts = {}) {
-        stats.set += 1;
-        console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
+        for (const stats of statsDryrunMap.keys()) {
+            if (this._firestore._fireway_stats === stats) {    
+                stats.set += 1;
+                console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
+            }
+        }
         return ogSet.call(this, doc, opts);
     };
 
     const ogUpdate = DocumentReference.prototype.update;
     DocumentReference.prototype.update = function(doc) {
-        stats.updated += 1;
-        console.log('Updating', this.path, JSON.stringify(doc));
+        for (const stats of statsDryrunMap.keys()) {
+            if (this._firestore._fireway_stats === stats) {
+                stats.updated += 1;
+                console.log('Updating', this.path, JSON.stringify(doc));
+            }
+        }
         return ogUpdate.call(this, doc);
     };
 
     const ogDelete = DocumentReference.prototype.delete;
     DocumentReference.prototype.delete = function() {
-        stats.deleted += 1;
-        console.log('Deleting', this.path);
+        for (const stats of statsDryrunMap.keys()) {
+            if (this._firestore._fireway_stats === stats) {
+                stats.deleted += 1;
+                console.log('Deleting', this.path);
+            }
+        }
         return ogDelete.call(this);
     };
     
     const ogAdd = CollectionReference.prototype.add;
     CollectionReference.prototype.add = function(doc) {
-        stats.added += 1;
-        console.log('Adding', JSON.stringify(doc));
+        for (const stats of statsDryrunMap.keys()) {
+            if (this._firestore._fireway_stats === stats) {
+                stats.added += 1;
+                console.log('Adding', JSON.stringify(doc));
+            }
+        }
         return ogAdd.call(this, doc);
     };
 }
@@ -130,7 +158,9 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     console.log(`Found ${stats.scannedFiles} migration files`);
 
     // Find the files after the latest migration number
-    proxyWritableMethods(dryrun, stats);
+    statsDryrunMap.set(stats, dryrun);
+    dryrun && console.log('Making firestore read-only');
+    proxyWritableMethods();
 
     if (!storageBucket && projectId) {
         storageBucket = `${projectId}.appspot.com`;
@@ -146,6 +176,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
 
     // Use Firestore directly so we can mock for dryruns
     const firestore = new Firestore({projectId});
+    firestore._fireway_stats = stats;
 
     const collection = firestore.collection('fireway');
 
@@ -231,6 +262,8 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     console.log('Finished all firestore migrations');
     console.log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
     console.log(`Docs added:${added} created:${created} updated:${updated} set:${set - executedFiles} deleted:${deleted}`);
+
+    statsDryrunMap.delete(stats);
 
     return stats;
 }
