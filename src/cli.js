@@ -18,6 +18,7 @@ prog
     .example('migrate --dryrun')
     .action(async (opts) => {
         try {
+            opts.debug = true;
             await fireway.migrate(opts)
         } catch (e) {
             console.log('ERROR:', e.message);

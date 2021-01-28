@@ -14,7 +14,7 @@ const exists = util.promisify(fs.exists);
 
 // Track stats and dryrun setting so we only proxy once.
 // Multiple proxies would create a memory leak.
-const statsDryrunMap = new Map();
+const statsMap = new Map();
 
 let proxied = false;
 function proxyWritableMethods() {
@@ -24,7 +24,7 @@ function proxyWritableMethods() {
 
     const ogCommit = WriteBatch.prototype._commit;
     WriteBatch.prototype._commit = async function() {
-        for (const [stats, dryrun] of statsDryrunMap.entries()) {
+        for (const [stats, {dryrun}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {
                 if (dryrun) return [];
             }
@@ -35,10 +35,10 @@ function proxyWritableMethods() {
     // Add logs for each item
     const ogCreate = DocumentReference.prototype.create;
     DocumentReference.prototype.create = function(doc) {
-        for (const stats of statsDryrunMap.keys()) {
+        for (const [stats, {log}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {
                 stats.created += 1;
-                console.log('Creating', JSON.stringify(doc));
+                log('Creating', JSON.stringify(doc));
             }
         }
         return ogCreate.call(this, doc);
@@ -46,10 +46,10 @@ function proxyWritableMethods() {
 
     const ogSet = DocumentReference.prototype.set;
     DocumentReference.prototype.set = function(doc, opts = {}) {
-        for (const stats of statsDryrunMap.keys()) {
+        for (const [stats, {log}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {    
                 stats.set += 1;
-                console.log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
+                log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
             }
         }
         return ogSet.call(this, doc, opts);
@@ -57,10 +57,10 @@ function proxyWritableMethods() {
 
     const ogUpdate = DocumentReference.prototype.update;
     DocumentReference.prototype.update = function(doc) {
-        for (const stats of statsDryrunMap.keys()) {
+        for (const [stats, {log}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {
                 stats.updated += 1;
-                console.log('Updating', this.path, JSON.stringify(doc));
+                log('Updating', this.path, JSON.stringify(doc));
             }
         }
         return ogUpdate.call(this, doc);
@@ -68,10 +68,10 @@ function proxyWritableMethods() {
 
     const ogDelete = DocumentReference.prototype.delete;
     DocumentReference.prototype.delete = function() {
-        for (const stats of statsDryrunMap.keys()) {
+        for (const [stats, {log}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {
                 stats.deleted += 1;
-                console.log('Deleting', this.path);
+                log('Deleting', this.path);
             }
         }
         return ogDelete.call(this);
@@ -79,17 +79,21 @@ function proxyWritableMethods() {
     
     const ogAdd = CollectionReference.prototype.add;
     CollectionReference.prototype.add = function(doc) {
-        for (const stats of statsDryrunMap.keys()) {
+        for (const [stats, {log}] of statsMap.entries()) {
             if (this._firestore._fireway_stats === stats) {
                 stats.added += 1;
-                console.log('Adding', JSON.stringify(doc));
+                log('Adding', JSON.stringify(doc));
             }
         }
         return ogAdd.call(this, doc);
     };
 }
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false} = {}) {
+    const log = function() {
+        return debug && console.log.apply(console, arguments);
+    }
+
     const stats = {
         scannedFiles: 0,
         executedFiles: 0,
@@ -128,7 +132,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
         if (!coerced) {
             if (description) {
                 // If there's a description, we assume you meant to use this file
-                console.log(`WARNING: ${filename} doesn't have a valid semver version`);
+                log(`WARNING: ${filename} doesn't have a valid semver version`);
             }
             return null;
         }
@@ -155,11 +159,11 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     }).filter(Boolean);
 
     stats.scannedFiles = files.length;
-    console.log(`Found ${stats.scannedFiles} migration files`);
+    log(`Found ${stats.scannedFiles} migration files`);
 
     // Find the files after the latest migration number
-    statsDryrunMap.set(stats, dryrun);
-    dryrun && console.log('Making firestore read-only');
+    statsMap.set(stats, {dryrun, log});
+    dryrun && log('Making firestore read-only');
     proxyWritableMethods();
 
     if (!storageBucket && projectId) {
@@ -203,18 +207,18 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     // Sort them by semver
     files.sort((f1, f2) => semver.compare(f1.version, f2.version));
 
-    console.log(`Executing ${files.length} migration files`);
+    log(`Executing ${files.length} migration files`);
 
     // Execute them in order
     for (const file of files) {
         stats.executedFiles += 1;
-        console.log('Running', file.filename);
+        log('Running', file.filename);
         
         let migration;
         try {
             migration = require(file.path);
         } catch (e) {
-            console.log(e);
+            log(e);
             throw e;
         }
 
@@ -224,14 +228,14 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
             await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
             success = true;
         } catch(e) {
-            console.log(`Error in ${file.filename}`, e);
+            log(`Error in ${file.filename}`, e);
             success = false;
         } finally {
             finish = new Date();
         }
 
         // Upload the results
-        console.log(`Uploading the results for ${file.filename}`);
+        log(`Uploading the results for ${file.filename}`);
 
         installed_rank += 1;
         const id = `${installed_rank}-${file.version}-${file.description}`;
@@ -259,11 +263,11 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app} = {}) 
     }
 
     const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
-    console.log('Finished all firestore migrations');
-    console.log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
-    console.log(`Docs added:${added} created:${created} updated:${updated} set:${set - executedFiles} deleted:${deleted}`);
+    log('Finished all firestore migrations');
+    log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
+    log(`Docs added:${added} created:${created} updated:${updated} set:${set - executedFiles} deleted:${deleted}`);
 
-    statsDryrunMap.delete(stats);
+    statsMap.delete(stats);
 
     return stats;
 }
