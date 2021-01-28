@@ -173,9 +173,9 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) =>
     }
 }));
 
-test('dryrun', wrapper(async ({t, projectId, firestore, app}) => {
+test('dryRun', wrapper(async ({t, projectId, firestore, app}) => {
     await fireway.migrate({
-        dryrun: true,
+        dryRun: true,
         projectId,
         path: __dirname + '/oneMigration',
         app
@@ -187,7 +187,7 @@ test('dryrun', wrapper(async ({t, projectId, firestore, app}) => {
     t.equal(dataSnapshot.size, 0);
 }));
 
-test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
+test('dryRun: delete', wrapper(async ({t, projectId, firestore, app}) => {
     await fireway.migrate({
         projectId,
         path: __dirname + '/oneMigration',
@@ -200,7 +200,7 @@ test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
     t.equal(dataSnapshot.size, 1);
 
     await fireway.migrate({
-        dryrun: true,
+        dryRun: true,
         projectId,
         path: __dirname + '/deleteMigration',
         app

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const sade = require('sade');
+const admin = require('firebase-admin');
 const fireway = require('./index');
 const pkg = require('../package.json');
 
@@ -9,17 +10,18 @@ const prog = sade('fireway').version(pkg.version);
 prog
     .command('migrate')
     .option('--path', 'Path to migration files', './migrations')
-    .option('--projectId', 'Target firebase project')
-    .option('--dryrun', 'Simulates changes')
+    .option('--dryRun', 'Simulates changes')
     .describe('Migrates schema to the latest version')
     .example('migrate')
     .example('migrate --path=./my-migrations')
     .example('migrate --projectId=my-staging-id')
-    .example('migrate --dryrun')
+    .example('migrate --dryRun')
     .action(async (opts) => {
         try {
-            // TODO: provide app instance here in ops, dryRun
-            await fireway.migrate(opts)
+            // Requires env variable GOOGLE_APPLICATION_CREDENTIALS to be set
+            // See https://firebase.google.com/docs/admin/setup#initialize-without-parameters
+            const app = admin.initializeApp();
+            await fireway.migrate({ ...opts, debug: true, app });
         } catch (e) {
             console.log('ERROR:', e.message);
             process.exit(1);

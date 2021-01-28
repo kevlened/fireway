@@ -38,15 +38,13 @@ Usage
 
 Options
   --path         Path to migration files  (default ./migrations)
-  --projectId    Target firebase project
-  --dryrun       Simulates changes
+  --dryRun       Simulates changes
   -h, --help     Displays this message
 
 Examples
   $ fireway migrate
   $ fireway migrate --path=./my-migrations
-  $ fireway migrate --projectId=my-staging-id
-  $ fireway migrate --dryrun
+  $ fireway migrate --dryRun
 ```
 
 ## Migration file format
@@ -63,7 +61,7 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 
 ## Running Locally
 
-Typically, `fireway` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 
+Typically, `fireway` expects an `GOOGLE_APPLICATION_CREDENTIALS` environment variable to be set.
 However, most likely you'll want to test your migration scripts _locally_ first before running them against your actual (presumably, production) instances. 
 If you are using the [Firestore emulator](https://firebase.google.com/docs/emulator-suite/connect_firestore), define the FIRESTORE_EMULATOR_HOST environment variable, e.g.:
 
