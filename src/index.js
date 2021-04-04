@@ -4,7 +4,7 @@ const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
 const admin = require('firebase-admin');
-const {Firestore, DocumentReference, CollectionReference, WriteBatch, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
+const {Firestore, DocumentReference, WriteBatch, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
 
 const readFile = util.promisify(fs.readFile);
@@ -32,61 +32,44 @@ function proxyWritableMethods() {
         return ogCommit.apply(this, Array.from(arguments));
     };
 
-    // Add logs for each item
-    const ogCreate = DocumentReference.prototype.create;
-    DocumentReference.prototype.create = function(doc) {
-        for (const [stats, {log}] of statsMap.entries()) {
-            if (this._firestore._fireway_stats === stats) {
-                stats.created += 1;
-                log('Creating', JSON.stringify(doc));
+    function mitm(obj, key, fn) {
+        const original = obj[key];
+        obj[key] = function() {
+            const args = [...arguments];
+            for (const [stats, {log}] of statsMap.entries()) {
+                if (this._firestore._fireway_stats === stats) {
+                    fn.call(this, args, stats, log);
+                }
             }
+            return original.apply(this, args);
         }
-        return ogCreate.call(this, doc);
-    };
+    }
 
-    const ogSet = DocumentReference.prototype.set;
-    DocumentReference.prototype.set = function(doc, opts = {}) {
-        for (const [stats, {log}] of statsMap.entries()) {
-            if (this._firestore._fireway_stats === stats) {    
-                stats.set += 1;
-                log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
-            }
-        }
-        return ogSet.call(this, doc, opts);
-    };
+    // Add logs for each DocumentReference item
+    mitm(DocumentReference.prototype, 'create', ([doc], stats, log) => {
+        stats.created += 1;
+        log('Creating', JSON.stringify(doc));
+    });
 
-    const ogUpdate = DocumentReference.prototype.update;
-    DocumentReference.prototype.update = function(doc) {
-        for (const [stats, {log}] of statsMap.entries()) {
-            if (this._firestore._fireway_stats === stats) {
-                stats.updated += 1;
-                log('Updating', this.path, JSON.stringify(doc));
-            }
-        }
-        return ogUpdate.call(this, doc);
-    };
+    mitm(DocumentReference.prototype, 'set', ([doc, opts = {}], stats, log) => {
+        stats.set += 1;
+        log(opts.merge ? 'Merging' : 'Setting', this.path, JSON.stringify(doc));
+    });
 
-    const ogDelete = DocumentReference.prototype.delete;
-    DocumentReference.prototype.delete = function() {
-        for (const [stats, {log}] of statsMap.entries()) {
-            if (this._firestore._fireway_stats === stats) {
-                stats.deleted += 1;
-                log('Deleting', this.path);
-            }
-        }
-        return ogDelete.call(this);
-    };
-    
-    const ogAdd = CollectionReference.prototype.add;
-    CollectionReference.prototype.add = function(doc) {
-        for (const [stats, {log}] of statsMap.entries()) {
-            if (this._firestore._fireway_stats === stats) {
-                stats.added += 1;
-                log('Adding', JSON.stringify(doc));
-            }
-        }
-        return ogAdd.call(this, doc);
-    };
+    mitm(DocumentReference.prototype, 'update', ([doc], stats, log) => {
+        stats.updated += 1;
+        log('Updating', this.path, JSON.stringify(doc));
+    });
+
+    mitm(DocumentReference.prototype, 'delete', (_, stats, log) => {
+        stats.deleted += 1;
+        log('Deleting', this.path);
+    });
+
+    mitm(DocumentReference.prototype, 'add', ([doc], stats, log) => {
+        stats.added += 1;
+        log('Adding', JSON.stringify(doc));
+    });
 }
 
 async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false} = {}) {
