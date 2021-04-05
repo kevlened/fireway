@@ -61,6 +61,17 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 };
 ```
 
+## TypeScript
+
+For intellisense in JS, add a JSDoc comment:
+
+```js
+/** @param { import('fireway').MigrateOptions } */
+module.exports.migrate = async ({firestore}) => {
+    // Intellisense enabled
+};
+```
+
 ## Running locally
 
 Typically, `fireway` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 

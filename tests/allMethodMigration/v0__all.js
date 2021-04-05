@@ -1,4 +1,4 @@
-/** @param {import('pg').Client} DB */
+/** @param { import('../../fireway').MigrateOptions } */
 module.exports.migrate = async ({firestore}) => {
     const batch = firestore.batch();
 
