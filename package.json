@@ -12,7 +12,8 @@
   "files": [
     "/src",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "fireway.d.ts"
   ],
   "main": "src/index.js",
   "bin": "src/cli.js",
