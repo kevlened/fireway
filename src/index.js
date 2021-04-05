@@ -24,6 +24,10 @@ function proxyWritableMethods() {
 
 	const ogCommit = WriteBatch.prototype._commit;
 	WriteBatch.prototype._commit = async function() {
+		// Empty the queue
+		while (this._fireway_queue?.length) {
+			this._fireway_queue.shift()();
+		}
 		for (const [stats, {dryrun}] of statsMap.entries()) {
 			if (this._firestore._fireway_stats === stats) {
 				if (dryrun) return [];
@@ -38,7 +42,10 @@ function proxyWritableMethods() {
 			const args = [...arguments];
 			for (const [stats, {log}] of statsMap.entries()) {
 				if (this._firestore._fireway_stats === stats) {
-					fn.call(this, args, (stats.frozen ? {} : stats), log);
+					this._fireway_queue = this._fireway_queue || [];
+					this._fireway_queue.push(() => {
+						fn.call(this, args, (stats.frozen ? {} : stats), log);
+					});
 				}
 			}
 			return original.apply(this, args);

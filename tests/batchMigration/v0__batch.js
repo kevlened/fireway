@@ -9,11 +9,11 @@ module.exports.migrate = async ({firestore}) => {
 
     await batch.commit();
 
-    // const uncommitted = firestore.batch();
+    const uncommitted = firestore.batch();
 
-    // const one = firestore.collection('data').doc('one');
-    // uncommitted.set(one, {key: 'value'});
+    const three = firestore.collection('data').doc('three');
+    uncommitted.set(three, {key: 'value'});
 
-    // const two = firestore.collection('data').doc('two');
-    // uncommitted.set(two, {key: 'value'});
+    const four = firestore.collection('data').doc('four');
+    uncommitted.set(four, {key: 'value'});
 };
