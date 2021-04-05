@@ -24,8 +24,13 @@ For more info, run any command with the `--help` flag
   $ fireway migrate --help
 
 Options
+  --require        Requires a module before executing
   -v, --version    Displays current version
   -h, --help       Displays this message
+
+Examples
+  $ fireway migrate
+  $ fireway --require="ts-node/register" migrate
 ```
 
 ### `fireway migrate`
@@ -40,7 +45,7 @@ Options
   --path         Path to migration files  (default ./migrations)
   --projectId    Target firebase project
   --dryrun       Simulates changes
-  --require      Require a module before executing
+  --require      Requires a module before executing
   -h, --help     Displays this message
 
 Examples
@@ -48,7 +53,7 @@ Examples
   $ fireway migrate --path=./my-migrations
   $ fireway migrate --projectId=my-staging-id
   $ fireway migrate --dryrun
-  $ fireway migrate --require="ts-node/register"
+  $ fireway --require="ts-node/register" migrate
 ```
 
 ## Migration file format
