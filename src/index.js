@@ -93,7 +93,16 @@ function proxyWritableMethods() {
 	});
 }
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req} = {}) {
+	if (req) {
+		try {
+			require(req);
+		} catch (e) {
+			console.error(e);
+			throw new Error(`Trouble executing require('${req}');`);
+		}
+	}
+
 	const log = function() {
 		return debug && console.log.apply(console, arguments);
 	}

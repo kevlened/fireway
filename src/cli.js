@@ -11,11 +11,13 @@ prog
     .option('--path', 'Path to migration files', './migrations')
     .option('--projectId', 'Target firebase project')
     .option('--dryrun', 'Simulates changes')
+    .option('--require', 'Require a module before executing')
     .describe('Migrates schema to the latest version')
     .example('migrate')
     .example('migrate --path=./my-migrations')
     .example('migrate --projectId=my-staging-id')
     .example('migrate --dryrun')
+    .example('migrate --require="ts-node/register"')
     .action(async (opts) => {
         try {
             opts.debug = true;

@@ -6,7 +6,8 @@
   "keywords": [
     "schema",
     "migration",
-    "firestore"
+    "firestore",
+    "typescript"
   ],
   "files": [
     "/src",
@@ -43,6 +44,8 @@
     "firebase-tools": "^8.11.2",
     "husky": "^4.2.5",
     "start-server-and-test": "^1.11.0",
-    "tape": "^4.13.2"
+    "tape": "^4.13.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
   }
 }

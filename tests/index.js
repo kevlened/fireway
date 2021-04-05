@@ -298,3 +298,26 @@ test('all methods', wrapper(async ({t, projectId, firestore, app}) => {
 		added: 1
 	});
 }));
+
+test('TypeScript (always run last)', wrapper(async ({t, projectId, firestore, app}) => {
+	const stats = await fireway.migrate({
+		projectId,
+		path: __dirname + '/tsMigration',
+		app,
+		require: 'ts-node/register'
+	});
+
+	const snapshot = await firestore.collection('fireway').get();
+	let dataSnapshot = await firestore.collection('data').get();
+	t.equal(snapshot.size, 1);
+	t.equal(dataSnapshot.size, 1);
+	t.deepEqual(stats, {
+		scannedFiles: 1,
+		executedFiles: 1,
+		created: 0,
+		set: 1,
+		updated: 0,
+		deleted: 0,
+		added: 0
+	});
+}));

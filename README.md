@@ -40,6 +40,7 @@ Options
   --path         Path to migration files  (default ./migrations)
   --projectId    Target firebase project
   --dryrun       Simulates changes
+  --require      Require a module before executing
   -h, --help     Displays this message
 
 Examples
@@ -47,6 +48,7 @@ Examples
   $ fireway migrate --path=./my-migrations
   $ fireway migrate --projectId=my-staging-id
   $ fireway migrate --dryrun
+  $ fireway migrate --require="ts-node/register"
 ```
 
 ## Migration file format
@@ -61,14 +63,40 @@ module.exports.migrate = async ({firestore, FieldValue}) => {
 };
 ```
 
-## TypeScript
+## Typed Migrations
 
-For intellisense in JS, add a JSDoc comment:
+For type checking and Intellisense, there are two options:
+
+### TypeScript
+
+1. Ensure [`ts-node`](https://www.npmjs.com/package/ts-node) is installed
+2. Create a migration
+
+   ```ts
+    // ./migrations/v0.0.1__typescript-example.ts
+
+    import { MigrateOptions } from 'fireway';
+
+    export async function migrate({firestore} : MigrateOptions) {
+        await firestore
+          .collection('data').doc('one')
+          .set({key: 'value'});
+    };
+   ```
+3. Run `fireway migrate` with the `require` option
+
+   ```sh
+   $ fireway migrate --require="ts-node/register"
+   ```
+
+### JSDoc
+
+Alternatively, you can use [JSDoc](https://jsdoc.app/) for Intellisense
 
 ```js
 /** @param { import('fireway').MigrateOptions } */
 module.exports.migrate = async ({firestore}) => {
-    // Intellisense enabled
+    // Intellisense is enabled
 };
 ```
 
