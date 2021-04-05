@@ -4,7 +4,7 @@ const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
 const admin = require('firebase-admin');
-const {Firestore, WriteBatch, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
+const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
 
 const readFile = util.promisify(fs.readFile);
@@ -36,16 +36,29 @@ function proxyWritableMethods() {
 		return ogCommit.apply(this, Array.from(arguments));
 	};
 
+	const skipWriteBatch = Symbol('Skip the WriteBatch proxy');
+
 	function mitm(obj, key, fn) {
 		const original = obj[key];
 		obj[key] = function() {
 			const args = [...arguments];
 			for (const [stats, {log}] of statsMap.entries()) {
 				if (this._firestore._fireway_stats === stats) {
-					this._fireway_queue = this._fireway_queue || [];
-					this._fireway_queue.push(() => {
+
+					// If this is a batch
+					if (this instanceof WriteBatch) {
+						const [_, doc] = args;
+						if (doc?.[skipWriteBatch]) {
+							delete doc[skipWriteBatch];
+						} else {
+							this._fireway_queue = this._fireway_queue || [];
+							this._fireway_queue.push(() => {
+								fn.call(this, args, (stats.frozen ? {} : stats), log);
+							});
+						}
+					} else {
 						fn.call(this, args, (stats.frozen ? {} : stats), log);
-					});
+					}
 				}
 			}
 			return original.apply(this, args);
@@ -71,6 +84,12 @@ function proxyWritableMethods() {
 	mitm(WriteBatch.prototype, 'delete', ([ref], stats, log) => {
 		stats.deleted += 1;
 		log('Deleting', ref.path);
+	});
+
+	mitm(CollectionReference.prototype, 'add', ([doc], stats, log) => {
+		doc[skipWriteBatch] = true;
+		stats.added += 1;
+		log('Adding', JSON.stringify(doc));
 	});
 }
 

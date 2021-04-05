@@ -255,7 +255,7 @@ test('invalid name', wrapper(async ({t, projectId, firestore, app}) => {
 	}
 }));
 
-test('batch migration count', wrapper(async ({t, projectId, firestore, app}) => {
+test('batch: migration count', wrapper(async ({t, projectId, firestore, app}) => {
 	const stats = await fireway.migrate({
 		projectId,
 		path: __dirname + '/batchMigration',
@@ -274,5 +274,27 @@ test('batch migration count', wrapper(async ({t, projectId, firestore, app}) => 
 		updated: 0,
 		deleted: 0,
 		added: 0
+	});
+}));
+
+test('all methods', wrapper(async ({t, projectId, firestore, app}) => {
+	const stats = await fireway.migrate({
+		projectId,
+		path: __dirname + '/allMethodMigration',
+		app
+	});
+
+	const snapshot = await firestore.collection('fireway').get();
+	let dataSnapshot = await firestore.collection('data').get();
+	t.equal(snapshot.size, 1);
+	t.equal(dataSnapshot.size, 3);
+	t.deepEqual(stats, {
+		scannedFiles: 1,
+		executedFiles: 1,
+		created: 2,
+		set: 2,
+		updated: 2,
+		deleted: 2,
+		added: 1
 	});
 }));
