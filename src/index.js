@@ -167,7 +167,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 			filename,
 			path: path.join(dir, filename),
 			version,
-			description: path.basename(description, '.js')
+			description: path.basename(description, path.extname(description))
 		};
 	}).filter(Boolean);
 
@@ -260,7 +260,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 			description: file.description,
 			version: file.version,
 			script: file.filename,
-			type: 'js',
+			type: path.extname(file.filename).slice(1),
 			checksum: md5(await readFile(file.path)),
 			installed_by: os.userInfo().username,
 			installed_on: start,

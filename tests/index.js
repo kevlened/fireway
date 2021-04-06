@@ -320,4 +320,20 @@ test('TypeScript (always run last)', wrapper(async ({t, projectId, firestore, ap
 		deleted: 0,
 		added: 0
 	});
+
+	await assertData(t, firestore, 'fireway/0-0.0.0-first', {
+		checksum: 'e54bcdef27f8938eefbdafc5ed32341a',
+		description: 'first',
+		execution_time: 251,
+		installed_by: 'len',
+		installed_on: {
+			seconds: 1564681117,
+			nanoseconds: 401000000
+		},
+		installed_rank: 0,
+		script: 'v0__first.ts',
+		success: true,
+		type: 'ts',
+		version: '0.0.0'
+	});
 }));
