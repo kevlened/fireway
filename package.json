@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^4.2.0",
+    "callsites": "^3.1.0",
     "firebase-admin": "^9.2.0",
     "md5": "^2.2.1",
     "sade": "^1.6.1",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^1.0.4",
+    "capture-console": "^1.0.1",
     "firebase-tools": "^8.11.2",
     "husky": "^4.2.5",
     "start-server-and-test": "^1.11.0",

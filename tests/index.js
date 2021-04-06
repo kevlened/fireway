@@ -1,5 +1,6 @@
 const test = require('tape');
 const firebase = require('@firebase/rules-unit-testing');
+const terminal = require('./console-tester');
 let fireway = require('../');
 
 function wrapper(fn) {
@@ -24,6 +25,9 @@ async function setup() {
 	// Clear the require cache
 	Object.keys(require.cache).map(key => { delete require.cache[key]; });
 	fireway = require('../');
+
+	// Clear the terminal tracking
+	terminal.reset();
 
 	const projectId = `fireway-test-${Date.now()}`;
 	const app = await firebase.initializeAdminApp({projectId});
@@ -299,7 +303,23 @@ test('all methods', wrapper(async ({t, projectId, firestore, app}) => {
 	});
 }));
 
-test('TypeScript (always run last)', wrapper(async ({t, projectId, firestore, app}) => {
+test('async: unhandled async warning', wrapper(async ({t, projectId, app}) => {
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/openTimeoutMigration',
+		app
+	});
+
+	t.equal(
+		terminal.includes('WARNING: fireway detected unresolved async handles'),
+		true
+	);
+}));
+
+test.skip('async: handle unhandled async');
+test.skip('async: unhandled async error');
+
+test('TypeScript (run all TS last for perf reasons and only require TS once)', wrapper(async ({t, projectId, firestore, app}) => {
 	const stats = await fireway.migrate({
 		projectId,
 		path: __dirname + '/tsMigration',
@@ -337,3 +357,19 @@ test('TypeScript (always run last)', wrapper(async ({t, projectId, firestore, ap
 		version: '0.0.0'
 	});
 }));
+
+test('TypeScript: unhandled async warning', wrapper(async ({t, projectId, app}) => {
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/tsOpenTimeoutMigration',
+		app
+	});
+
+	t.equal(
+		terminal.includes('WARNING: fireway detected unresolved async handles'),
+		true
+	);
+}));
+
+test.skip('TypeScript: handle unhandled async');
+test.skip('TypeScript: unhandled async error');

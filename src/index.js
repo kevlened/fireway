@@ -6,6 +6,8 @@ const md5 = require('md5');
 const admin = require('firebase-admin');
 const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
+const asyncHooks = require('async_hooks');
+const callsites = require('callsites');
 
 const readFile = util.promisify(fs.readFile);
 const readdir = util.promisify(fs.readdir);
@@ -91,6 +93,46 @@ function proxyWritableMethods() {
 		stats.added += 1;
 		log('Adding', JSON.stringify(doc));
 	});
+}
+
+async function trackAsync(filePath, fn) {
+	// Track filenames for async handles
+	const activeHandles = new Map();
+	const hook = asyncHooks.createHook({
+		init(asyncId) {
+			for (const call of callsites()) {
+				const name = call.getFileName();
+				if (
+					!name ||
+					name == __filename ||
+					name.startsWith('internal/') ||
+					name.startsWith('timers.js')
+				) continue;
+
+				if (name === filePath) {
+					const filename = call.getFileName();
+					const lineNumber = call.getLineNumber();
+					const columnNumber = call.getColumnNumber();
+					activeHandles.set(asyncId, `${filename}:${lineNumber}:${columnNumber}`);
+					break;
+				}
+			}
+		},
+		before: asyncId => activeHandles.delete(asyncId),
+		promiseResolve: asyncId => activeHandles.delete(asyncId)
+	}).enable();
+	
+	try {
+		return await fn();
+	} finally {
+		if (activeHandles.size) {
+			console.warn(
+				'WARNING: fireway detected unresolved async handles',
+				Array.from(activeHandles.values())
+			);
+		}
+		hook.disable();
+	}
 }
 
 async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req} = {}) {
@@ -235,17 +277,19 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 			throw e;
 		}
 
-		const start = new Date();
-		let success, finish;
-		try {
-			await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
-			success = true;
-		} catch(e) {
-			log(`Error in ${file.filename}`, e);
-			success = false;
-		} finally {
-			finish = new Date();
-		}
+		let start, success, finish;
+		await trackAsync(file.path, async () => {
+			start = new Date();
+			try {
+				await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
+				success = true;
+			} catch(e) {
+				log(`Error in ${file.filename}`, e);
+				success = false;
+			} finally {
+				finish = new Date();
+			}
+		});
 
 		// Upload the results
 		log(`Uploading the results for ${file.filename}`);
