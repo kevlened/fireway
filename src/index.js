@@ -156,10 +156,14 @@ async function trackAsync({log, file, forceWait}, fn) {
 				}
 				await waitForDeleted();
 			} else {
-				console.warn(
-					'WARNING: fireway detected open async calls. Use --forceWait if you want to wait:',
-					Array.from(activeHandles.values())
-				);
+				// This always logs in Node <12
+				const nodeVersion = semver.coerce(process.versions.node);
+				if (nodeVersion.major >= 12) {
+					console.warn(
+						'WARNING: fireway detected open async calls. Use --forceWait if you want to wait:',
+						Array.from(activeHandles.values())
+					);
+				}
 				break;
 			}
 		}
