@@ -1,4 +1,5 @@
 const path = require('path');
+const {EventEmitter} = require('events');
 const util = require('util');
 const os = require('os');
 const fs = require('fs');
@@ -95,12 +96,28 @@ function proxyWritableMethods() {
 	});
 }
 
-async function trackAsync(filePath, fn) {
+const dontTrack = Symbol('Skip async tracking to short circuit');
+async function trackAsync({log, file, forceWait}, fn) {
 	// Track filenames for async handles
 	const activeHandles = new Map();
+	const emitter = new EventEmitter();
+	function deleteHandle(id) {
+		if (activeHandles.has(id)) {
+			activeHandles.delete(id);
+			emitter.emit('deleted', id);
+		}
+	}
+	function waitForDeleted() {
+		return new Promise(r => emitter.once('deleted', () => r()));
+	}
 	const hook = asyncHooks.createHook({
 		init(asyncId) {
 			for (const call of callsites()) {
+				// Prevent infinite loops
+				if (call.getFunction()?.[dontTrack]) {
+					return;
+				}
+				
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -109,7 +126,7 @@ async function trackAsync(filePath, fn) {
 					name.startsWith('timers.js')
 				) continue;
 
-				if (name === filePath) {
+				if (name === file.path) {
 					const filename = call.getFileName();
 					const lineNumber = call.getLineNumber();
 					const columnNumber = call.getColumnNumber();
@@ -118,24 +135,64 @@ async function trackAsync(filePath, fn) {
 				}
 			}
 		},
-		before: asyncId => activeHandles.delete(asyncId),
-		promiseResolve: asyncId => activeHandles.delete(asyncId)
+		before: deleteHandle,
+		after: deleteHandle,
+		promiseResolve: deleteHandle
 	}).enable();
+
+	let logged;
+	async function handleCheck() {
+		while (activeHandles.size) {
+			if (forceWait) {
+				// NOTE: Attempting to add a timeout requires
+				// shutting down the entire process cleanly.
+				// If someone decides not to return proper
+				// Promises, and provides --forceWait, long
+				// waits are expected.
+				if (!logged) {
+					log('Waiting for async calls to resolve');
+					logged = true;
+				}
+				await waitForDeleted();
+			} else {
+				console.warn(
+					'WARNING: fireway detected open async calls. Use --forceWait if you want to wait:',
+					Array.from(activeHandles.values())
+				);
+				break;
+			}
+		}
+	}
+
+	let rejection;
+	const unhandled = reason => rejection = reason;
+	process.once('unhandledRejection', unhandled);
+	process.once('uncaughtException', unhandled);
 	
 	try {
-		return await fn();
-	} finally {
-		if (activeHandles.size) {
-			console.warn(
-				'WARNING: fireway detected unresolved async handles',
-				Array.from(activeHandles.values())
-			);
+		const res = await fn();
+		await handleCheck();
+
+		// Wait a tick or so for the unhandledRejection
+		await new Promise(r => setTimeout(() => r(), 1));
+
+		process.removeAllListeners('unhandledRejection');
+		process.removeAllListeners('uncaughtException');
+		if (rejection) {
+			log(`Error in ${file.filename}`, rejection);
+			return false;
 		}
+		return res;
+	} catch(e) {
+		log(e);
+		return false;
+	} finally {
 		hook.disable();
 	}
 }
+trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -277,15 +334,15 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 			throw e;
 		}
 
-		let start, success, finish;
-		await trackAsync(file.path, async () => {
+		let start, finish;
+		const success = await trackAsync({log, file, forceWait}, async () => {
 			start = new Date();
 			try {
 				await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
-				success = true;
+				return true;
 			} catch(e) {
 				log(`Error in ${file.filename}`, e);
-				success = false;
+				return false;
 			} finally {
 				finish = new Date();
 			}
