@@ -140,6 +140,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 		promiseResolve: deleteHandle
 	}).enable();
 
+	let logged;
 	async function handleCheck() {
 		while (activeHandles.size) {
 			if (forceWait) {
@@ -148,10 +149,14 @@ async function trackAsync({log, file, forceWait}, fn) {
 				// If someone decides not to return proper
 				// Promises, and provides --forceWait, long
 				// waits are expected.
+				if (!logged) {
+					log('Waiting for async calls to resolve');
+					logged = true;
+				}
 				await waitForDeleted();
 			} else {
 				console.warn(
-					'WARNING: fireway detected unresolved async handles',
+					'WARNING: fireway detected open async calls. Use --forceWait if you want to wait:',
 					Array.from(activeHandles.values())
 				);
 				break;

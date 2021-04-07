@@ -15,7 +15,7 @@ prog
     .option('--path', 'Path to migration files', './migrations')
     .option('--projectId', 'Target firebase project')
     .option('--dryrun', 'Simulates changes')
-    .option('--forceWait', 'Forces waiting for migrations that do not strictly manage Promises')
+    .option('--forceWait', 'Forces waiting for migrations that do not strictly manage async calls')
     .describe('Migrates schema to the latest version')
     .example('migrate')
     .example('migrate --path=./my-migrations')

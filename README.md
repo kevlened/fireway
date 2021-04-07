@@ -45,6 +45,7 @@ Options
   --path         Path to migration files  (default ./migrations)
   --projectId    Target firebase project
   --dryrun       Simulates changes
+  --forceWait    Forces waiting for migrations that do not strictly manage async calls
   --require      Requires a module before executing
   -h, --help     Displays this message
 
@@ -53,6 +54,7 @@ Examples
   $ fireway migrate --path=./my-migrations
   $ fireway migrate --projectId=my-staging-id
   $ fireway migrate --dryrun
+  $ fireway migrate --forceWait
   $ fireway --require="ts-node/register" migrate
 ```
 
@@ -83,9 +85,7 @@ For type checking and Intellisense, there are two options:
     import { MigrateOptions } from 'fireway';
 
     export async function migrate({firestore} : MigrateOptions) {
-        await firestore
-          .collection('data').doc('one')
-          .set({key: 'value'});
+        await firestore.collection('data').doc('one').set({key: 'value'});
     };
    ```
 3. Run `fireway migrate` with the `require` option
