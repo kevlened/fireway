@@ -143,7 +143,11 @@ async function trackAsync({log, file, forceWait}, fn) {
 	async function handleCheck() {
 		while (activeHandles.size) {
 			if (forceWait) {
-				// TODO: Wait for the next handle to be deleted or race a timeout
+				// NOTE: Attempting to add a timeout requires
+				// shutting down the entire process cleanly.
+				// If someone decides not to return proper
+				// Promises, and provides --forceWait, long
+				// waits are expected.
 				await waitForDeleted();
 			} else {
 				console.warn(
@@ -174,6 +178,9 @@ async function trackAsync({log, file, forceWait}, fn) {
 			return false;
 		}
 		return res;
+	} catch(e) {
+		log(e);
+		return false;
 	} finally {
 		hook.disable();
 	}
