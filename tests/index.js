@@ -316,8 +316,50 @@ test('async: unhandled async warning', wrapper(async ({t, projectId, app}) => {
 	);
 }));
 
-test.skip('async: handle unhandled async');
-test.skip('async: unhandled async error');
+test('async: handle unhandled async', wrapper(async ({t, projectId, app}) => {
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/openTimeoutMigration',
+		app,
+		forceWait: true
+	});
+
+	t.equal(
+		terminal.includes('WARNING: fireway detected unresolved async handles'),
+		false
+	);
+}));
+
+// FIXME: hangs if after another forceWait test
+test.skip('async: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
+	try {
+		await fireway.migrate({
+			projectId,
+			path: __dirname + '/openTimeoutFailureMigration',
+			app,
+			forceWait: true
+		});
+		t.fail('Should throw an error');
+	} catch (e) {
+		const snapshot = await firestore.collection('fireway').get();
+		t.equal(snapshot.size, 1);
+		await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+			checksum: '195c7acd6b71af2f4cae0c422032781e',
+			description: 'error',
+			execution_time: 251,
+			installed_by: 'len',
+			installed_on: {
+				seconds: 1564681117,
+				nanoseconds: 401000000
+			},
+			installed_rank: 0,
+			script: 'v0__error.js',
+			success: false,
+			type: 'js',
+			version: '0.0.0'
+		});
+	}
+}));
 
 test('TypeScript (run all TS last for perf reasons and only require TS once)', wrapper(async ({t, projectId, firestore, app}) => {
 	const stats = await fireway.migrate({
@@ -371,5 +413,19 @@ test('TypeScript: unhandled async warning', wrapper(async ({t, projectId, app}) 
 	);
 }));
 
-test.skip('TypeScript: handle unhandled async');
+// FIXME: this always hangs
+test.skip('TypeScript: handle unhandled async', wrapper(async ({t, projectId, app}) => {
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/tsOpenTimeoutMigration',
+		app,
+		forceWait: true,
+		require: 'ts-node/register'
+	});
+
+	t.equal(
+		terminal.includes('WARNING: fireway detected unresolved async handles'),
+		false
+	);
+}));
 test.skip('TypeScript: unhandled async error');
