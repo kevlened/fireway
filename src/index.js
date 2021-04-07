@@ -96,13 +96,16 @@ function proxyWritableMethods() {
 	});
 }
 
+const dontTrack = Symbol('Skip async tracking to short circuit');
 async function trackAsync({log, file, forceWait}, fn) {
 	// Track filenames for async handles
 	const activeHandles = new Map();
 	const emitter = new EventEmitter();
 	function deleteHandle(id) {
-		activeHandles.delete(id);
-		emitter.emit('deleted', id);
+		if (activeHandles.has(id)) {
+			activeHandles.delete(id);
+			emitter.emit('deleted', id);
+		}
 	}
 	function waitForDeleted() {
 		return new Promise(r => emitter.once('deleted', () => r()));
@@ -110,6 +113,11 @@ async function trackAsync({log, file, forceWait}, fn) {
 	const hook = asyncHooks.createHook({
 		init(asyncId) {
 			for (const call of callsites()) {
+				// Prevent infinite loops
+				if (call.getFunction()?.[dontTrack]) {
+					return;
+				}
+				
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -170,6 +178,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 		hook.disable();
 	}
 }
+trackAsync[dontTrack] = true;
 
 async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {

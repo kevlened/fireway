@@ -330,8 +330,7 @@ test('async: handle unhandled async', wrapper(async ({t, projectId, app}) => {
 	);
 }));
 
-// FIXME: hangs if after another forceWait test
-test.skip('async: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
+test('async: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
 	try {
 		await fireway.migrate({
 			projectId,
@@ -413,14 +412,12 @@ test('TypeScript: unhandled async warning', wrapper(async ({t, projectId, app}) 
 	);
 }));
 
-// FIXME: this always hangs
-test.skip('TypeScript: handle unhandled async', wrapper(async ({t, projectId, app}) => {
+test('TypeScript: handle unhandled async', wrapper(async ({t, projectId, app}) => {
 	await fireway.migrate({
 		projectId,
 		path: __dirname + '/tsOpenTimeoutMigration',
 		app,
-		forceWait: true,
-		require: 'ts-node/register'
+		forceWait: true
 	});
 
 	t.equal(
@@ -428,4 +425,33 @@ test.skip('TypeScript: handle unhandled async', wrapper(async ({t, projectId, ap
 		false
 	);
 }));
-test.skip('TypeScript: unhandled async error');
+
+test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
+	try {
+		await fireway.migrate({
+			projectId,
+			path: __dirname + '/tsOpenTimeoutFailureMigration',
+			app,
+			forceWait: true
+		});
+		t.fail('Should throw an error');
+	} catch (e) {
+		const snapshot = await firestore.collection('fireway').get();
+		t.equal(snapshot.size, 1);
+		await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+			checksum: 'e26a1eaed0c4f9549f6902001139cfb4',
+			description: 'error',
+			execution_time: 251,
+			installed_by: 'len',
+			installed_on: {
+				seconds: 1564681117,
+				nanoseconds: 401000000
+			},
+			installed_rank: 0,
+			script: 'v0__error.ts',
+			success: false,
+			type: 'ts',
+			version: '0.0.0'
+		});
+	}
+}));
