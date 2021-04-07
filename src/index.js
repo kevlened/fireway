@@ -25,7 +25,7 @@ function proxyWritableMethods() {
 	const ogCommit = WriteBatch.prototype._commit;
 	WriteBatch.prototype._commit = async function() {
 		// Empty the queue
-		while (this._fireway_queue?.length) {
+		while (this._fireway_queue && this._fireway_queue.length) {
 			this._fireway_queue.shift()();
 		}
 		for (const [stats, {dryrun}] of statsMap.entries()) {
@@ -48,7 +48,7 @@ function proxyWritableMethods() {
 					// If this is a batch
 					if (this instanceof WriteBatch) {
 						const [_, doc] = args;
-						if (doc?.[skipWriteBatch]) {
+						if (doc && doc[skipWriteBatch]) {
 							delete doc[skipWriteBatch];
 						} else {
 							this._fireway_queue = this._fireway_queue || [];
