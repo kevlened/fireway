@@ -16,7 +16,7 @@ function wrapper(fn) {
 			t.fail(e);
 		} finally {
 			t.end();
-			result.firestore.disableNetwork?.();
+			result.firestore.disableNetwork && result.firestore.disableNetwork();
 		}
 	}
 }
