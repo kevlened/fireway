@@ -360,6 +360,27 @@ test('async: handle unhandled async error', wrapper(async ({t, projectId, firest
 	}
 }));
 
+test('Delete a field', wrapper(async ({t, projectId, firestore, app}) => {
+	await firestore.collection('data').doc('doc').set({
+		field1: 'field1',
+		field2: 'field2'
+	})
+
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/deleteFieldMigration',
+		app
+	});
+
+	snapshot = await firestore.collection('fireway').get();
+	let dataSnapshot = await firestore.collection('data').get();
+	t.equal(snapshot.size, 1);
+	t.equal(dataSnapshot.size, 1);
+	await assertData(t, firestore, 'data/doc', {
+		field2: 'field2'
+	});
+}));
+
 test('TypeScript (run all TS last for perf reasons and only require TS once)', wrapper(async ({t, projectId, firestore, app}) => {
 	const stats = await fireway.migrate({
 		projectId,
