@@ -77,7 +77,19 @@ For type checking and Intellisense, there are two options:
 ### TypeScript
 
 1. Ensure [`ts-node`](https://www.npmjs.com/package/ts-node) is installed
-2. Create a migration
+2. Define a `ts-node` configuration block inside your `tsconfig.json` file:
+
+   ```json
+   {
+     "ts-node": {
+       "transpileOnly": true,
+       "compilerOptions": {
+         "module": "commonjs"
+       }
+     }
+   }
+   ```
+3. Create a migration
 
    ```ts
     // ./migrations/v0.0.1__typescript-example.ts
@@ -88,7 +100,7 @@ For type checking and Intellisense, there are two options:
         await firestore.collection('data').doc('one').set({key: 'value'});
     };
    ```
-3. Run `fireway migrate` with the `require` option
+4. Run `fireway migrate` with the `require` option
 
    ```sh
    $ fireway migrate --require="ts-node/register"
