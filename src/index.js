@@ -79,9 +79,13 @@ function proxyWritableMethods() {
 		log(opts.merge ? 'Merging' : 'Setting', ref.path, JSON.stringify(doc));
 	});
 
-	mitm(WriteBatch.prototype, 'update', ([ref, doc], stats, log) => {
+	mitm(WriteBatch.prototype, 'update', ([ref, doc, update = undefined], stats, log) => {
 		stats.updated += 1;
-		log('Updating', ref.path, JSON.stringify(doc));
+		if (update) {
+			log('Updating', ref.path, JSON.stringify(doc), update);
+		} else {
+			log('Updating', ref.path, JSON.stringify(doc));
+		}
 	});
 
 	mitm(WriteBatch.prototype, 'delete', ([ref], stats, log) => {
