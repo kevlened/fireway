@@ -360,6 +360,31 @@ test('async: handle unhandled async error', wrapper(async ({t, projectId, firest
 	}
 }));
 
+test('async: unhandled async in dryrun', wrapper(async ({t, projectId, firestore, app}) => {
+	await fireway.migrate({
+		projectId,
+		path: __dirname + '/oneMigration',
+		app
+	});
+
+	await fireway.migrate({
+		dryrun: true,
+		projectId,
+		path: __dirname + '/openTimeoutDryrun',
+		app
+	});
+
+	const snapshot = await firestore.collection('fireway').get();
+	const dataSnapshot = await firestore.collection('data').get();
+	const [doc1] = dataSnapshot.docs;
+	t.equal(snapshot.size, 1);
+	t.deepEqual(doc1.data(), {key: 'value'});
+	t.equal(
+		terminal.includes('WARNING: fireway detected open async calls'),
+		true
+	);
+}));
+
 test('Delete a field', wrapper(async ({t, projectId, firestore, app}) => {
 	await firestore.collection('data').doc('doc').set({
 		field1: 'field1',
