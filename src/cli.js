@@ -16,16 +16,18 @@ prog
     .option('--projectId', 'Target firebase project')
     .option('--dryrun', 'Simulates changes')
     .option('--forceWait', 'Forces waiting for migrations that do not strictly manage async calls')
+    .option('--quiet', 'disables console debug logging within fireway\'s migrate')
     .describe('Migrates schema to the latest version')
     .example('migrate')
     .example('migrate --path=./my-migrations')
     .example('migrate --projectId=my-staging-id')
     .example('migrate --dryrun')
     .example('migrate --forceWait')
+    .example('migrate --quiet')
     .example('--require="ts-node/register" migrate')
     .action(async (opts) => {
         try {
-            opts.debug = true;
+            opts.debug = !opts.quiet;
             await fireway.migrate(opts)
         } catch (e) {
             console.log('ERROR:', e.message);
