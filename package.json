@@ -44,9 +44,9 @@
   "devDependencies": {
     "@firebase/rules-unit-testing": "^1.0.4",
     "capture-console": "^1.0.1",
-    "firebase-tools": "^8.11.2",
+    "firebase-tools": "^10.1.2",
     "husky": "^4.2.5",
-    "start-server-and-test": "^1.11.0",
+    "start-server-and-test": "^1.14.0",
     "tape": "^4.13.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"

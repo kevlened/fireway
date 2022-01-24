@@ -2,7 +2,7 @@
   "emulators": {
     "firestore": {
       "host": "localhost",
-      "port": "8181"
+      "port": 8181
     }
   }
 }
