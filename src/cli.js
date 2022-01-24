@@ -32,40 +32,5 @@ prog
             process.exit(1);
         }
     });
-
-// prog
-//   .command('dryrun')
-//   .describe('Show what will change before running the migration')
-//   .action(opts => {
-//     console.log('~> Drops everything...');
-//   });
-
-// prog
-//   .command('undo')
-//   .describe('Undo versioned migrations until below a target version')
-//   .action(opts => {
-//     console.log('~> Drops everything...');
-//   });
-
-// prog
-//   .command('clean')
-//   .describe('Drops all objects in the configured schemas')
-//   .action(opts => {
-//     console.log('~> Drops everything...');
-//   });
-
-// prog
-//   .command('info')
-//   .describe('Prints the details and status information about all the migrations')
-//   .action(opts => {
-//     console.log('~> Prints table of migration info...');
-//   });
-
-// prog
-//   .command('validate')
-//   .describe('Validates the applied migrations against the available ones')
-//   .action(opts => {
-//     console.log('~> Validates the migration info...');
-//   });
-
+    
 prog.parse(process.argv);
