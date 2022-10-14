@@ -33,6 +33,15 @@ Examples
   $ fireway --require="ts-node/register" migrate
 ```
 
+## Credentials
+
+In order to fireway be able to connect to firestore you need to set up the environment variable `GOOGLE_APPLICATION_CREDENTIALS` with service account file path.
+
+Example:
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/firestore-service-account.json"
+```
+
 ### `fireway migrate`
 ```bash
 Description
