@@ -197,7 +197,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({path: dir, projectId = process.env.GOOGLE_PROJECT_ID, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {
 		try {
 			require(req);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+require("dotenv").config();
 const sade = require('sade');
 const fireway = require('./index');
 const pkg = require('../package.json');
