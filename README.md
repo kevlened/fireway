@@ -17,8 +17,19 @@ In order to fireway be able to connect to firestore you need to set up the envir
 
 Example:
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/firestore-service-account.json"
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/google-service-account.json"
 ```
+
+### .env support
+
+Alternatively, you can set upt `GOOGLE_PROJECT_ID` and `GOOGLE_APPLICATION_CREDENTIALS` vars on `.env` file.
+
+Example:
+```.env
+GOOGLE_PROJECT_ID=project-id
+GOOGLE_APPLICATION_CREDENTIALS="path/to/google-service-account.json"
+```
+
 
 ## CLI
 
@@ -66,6 +77,7 @@ Examples
   $ fireway migrate --forceWait
   $ fireway --require="ts-node/register" migrate
 ```
+PS: Alternatively to `--projectId` you can set up a `GOOGLE_PROJECT_ID` var on `.env` file.
 
 ## Migration file format
 
