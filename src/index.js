@@ -201,7 +201,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({path: dir, projectId, dryrun, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -287,18 +287,6 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, debug = fal
 	dryrun && log('Making firestore read-only');
 	proxyWritableMethods();
 
-	if (!storageBucket && projectId) {
-		storageBucket = `${projectId}.appspot.com`;
-	}
-
-	// const providedApp = app;
-	// if (!app) {
-	// 	app = admin.initializeApp({
-	// 		projectId,
-	// 		storageBucket
-	// 	});
-	// }
-
 	const client = await auth.getClient();
 
 	// Impersonate new credentials:
@@ -312,7 +300,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, debug = fal
 
 	const secretManager = new SecretManagerServiceClient({
     projectId,
-    auth: targetClient,
+    auth: {getClient: () =>targetClient},
   });
 
 	// Use Firestore directly so we can mock for dryruns
@@ -406,11 +394,6 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, debug = fal
 			throw new Error('Stopped at first failure');
 		}
 	}
-
-	// // Ensure firebase terminates
-	// if (!providedApp) {
-	// 	app.delete();
-	// }
 
 	const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
 	log('Finished all firestore migrations');
