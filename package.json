@@ -28,28 +28,24 @@
     "test": "FIRESTORE_EMULATOR_HOST=0.0.0.0:8181 start-test emulator tcp:8181 test-runner",
     "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
   },
-  "husky": {
-    "hooks": {
-      "pre-push": "yarn test"
-    }
-  },
   "dependencies": {
     "@google-cloud/firestore": "^5.0.2",
+    "@google-cloud/secret-manager": "^4.1.4",
     "callsites": "^3.1.0",
-    "firebase-admin": "^10.1.0",
-    "md5": "^2.2.1",
-    "sade": "^1.6.1",
+    "firebase-admin": "^11.2.1",
+    "google-auth-library": "^8.7.0",
+    "md5": "^2.3.0",
+    "sade": "^1.8.1",
     "semver": "^7.3.7"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^1.0.4",
+    "@types/node": "^14.18.16",
     "capture-console": "^1.0.1",
     "firebase-tools": "^10.7.2",
-    "husky": "^4.2.5",
     "start-server-and-test": "^1.14.0",
     "tape": "^4.13.2",
     "ts-node": "^10.7.0",
-    "@types/node": "^14.18.16",
     "typescript": "^4.6.4"
   }
 }

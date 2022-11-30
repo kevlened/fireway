@@ -4,8 +4,10 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
-const admin = require('firebase-admin');
 const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
+const {GoogleAuth, Impersonated} = require('google-auth-library');
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+
 const semver = require('semver');
 const asyncHooks = require('async_hooks');
 const callsites = require('callsites');
@@ -14,6 +16,8 @@ const readFile = util.promisify(fs.readFile);
 const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
 const exists = util.promisify(fs.exists);
+
+const auth = new GoogleAuth();
 
 // Track stats and dryrun setting so we only proxy once.
 // Multiple proxies would create a memory leak.
@@ -118,7 +122,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 				if (fn && fn[dontTrack]) {
 					return;
 				}
-				
+
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -173,7 +177,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 	const unhandled = reason => rejection = reason;
 	process.once('unhandledRejection', unhandled);
 	process.once('uncaughtException', unhandled);
-	
+
 	try {
 		const res = await fn();
 		await handleCheck();
@@ -197,7 +201,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -242,7 +246,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	let files = filenames.map(filename => {
 		// Skip files that start with a dot
 		if (filename[0] === '.') return;
-		
+
 		const [filenameVersion, description] = filename.split('__');
 		const coerced = semver.coerce(filenameVersion);
 
@@ -286,17 +290,38 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	if (!storageBucket && projectId) {
 		storageBucket = `${projectId}.appspot.com`;
 	}
-	
-	const providedApp = app;
-	if (!app) {
-		app = admin.initializeApp({
-			projectId,
-			storageBucket
-		});
-	}
+
+	// const providedApp = app;
+	// if (!app) {
+	// 	app = admin.initializeApp({
+	// 		projectId,
+	// 		storageBucket
+	// 	});
+	// }
+
+	const client = await auth.getClient();
+
+	// Impersonate new credentials:
+	let targetClient = new Impersonated({
+			sourceClient: client,
+			targetPrincipal: `main-service-account@${projectId}.iam.gserviceaccount.com`,
+			lifetime: 30,
+			delegates: [],
+			targetScopes: ['https://www.googleapis.com/auth/cloud-platform']
+	});
+
+	const secretManager = new SecretManagerServiceClient({
+    projectId,
+    auth: targetClient,
+  });
 
 	// Use Firestore directly so we can mock for dryruns
-	const firestore = new Firestore({projectId});
+	const firestore = new Firestore({
+		projectId,
+		auth: {
+				getClient: () => targetClient,
+		}
+	});
 	firestore._fireway_stats = stats;
 
 	const collection = firestore.collection('fireway');
@@ -330,7 +355,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	for (const file of files) {
 		stats.executedFiles += 1;
 		log('Running', file.filename);
-		
+
 		let migration;
 		try {
 			migration = require(file.path);
@@ -343,7 +368,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		const success = await trackAsync({log, file, forceWait}, async () => {
 			start = new Date();
 			try {
-				await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
+				await migration.migrate({firestore, secretManager, FieldValue, FieldPath, Timestamp, dryrun});
 				return true;
 			} catch(e) {
 				log(`Error in ${file.filename}`, e);
@@ -382,10 +407,10 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		}
 	}
 
-	// Ensure firebase terminates
-	if (!providedApp) {
-		app.delete();
-	}
+	// // Ensure firebase terminates
+	// if (!providedApp) {
+	// 	app.delete();
+	// }
 
 	const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
 	log('Finished all firestore migrations');
