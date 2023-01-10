@@ -1,11 +1,11 @@
 const path = require('path');
-const {EventEmitter} = require('events');
+const { EventEmitter } = require('events');
 const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
 const admin = require('firebase-admin');
-const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
+//const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
 const asyncHooks = require('async_hooks');
 const callsites = require('callsites');
@@ -25,13 +25,13 @@ function proxyWritableMethods() {
 	if (proxied) return;
 	else proxied = true;
 
-	const ogCommit = WriteBatch.prototype._commit;
-	WriteBatch.prototype._commit = async function() {
+	const ogCommit = admin.firestore.WriteBatch.prototype._commit;
+	admin.firestore.WriteBatch.prototype._commit = async function () {
 		// Empty the queue
 		while (this._fireway_queue && this._fireway_queue.length) {
 			this._fireway_queue.shift()();
 		}
-		for (const [stats, {dryrun}] of statsMap.entries()) {
+		for (const [stats, { dryrun }] of statsMap.entries()) {
 			if (this._firestore._fireway_stats === stats) {
 				if (dryrun) return [];
 			}
@@ -43,13 +43,13 @@ function proxyWritableMethods() {
 
 	function mitm(obj, key, fn) {
 		const original = obj[key];
-		obj[key] = function() {
+		obj[key] = function () {
 			const args = [...arguments];
-			for (const [stats, {log}] of statsMap.entries()) {
+			for (const [stats, { log }] of statsMap.entries()) {
 				if (this._firestore._fireway_stats === stats) {
 
 					// If this is a batch
-					if (this instanceof WriteBatch) {
+					if (this instanceof admin.firestore.WriteBatch) {
 						const [_, doc] = args;
 						if (doc && doc[skipWriteBatch]) {
 							delete doc[skipWriteBatch];
@@ -69,27 +69,27 @@ function proxyWritableMethods() {
 	}
 
 	// Add logs for each WriteBatch item
-	mitm(WriteBatch.prototype, 'create', ([_, doc], stats, log) => {
+	mitm(admin.firestore.WriteBatch.prototype, 'create', ([_, doc], stats, log) => {
 		stats.created += 1;
 		log('Creating', JSON.stringify(doc));
 	});
 
-	mitm(WriteBatch.prototype, 'set', ([ref, doc, opts = {}], stats, log) => {
+	mitm(admin.firestore.WriteBatch.prototype, 'set', ([ref, doc, opts = {}], stats, log) => {
 		stats.set += 1;
 		log(opts.merge ? 'Merging' : 'Setting', ref.path, JSON.stringify(doc));
 	});
 
-	mitm(WriteBatch.prototype, 'update', ([ref, doc], stats, log) => {
+	mitm(admin.firestore.WriteBatch.prototype, 'update', ([ref, doc], stats, log) => {
 		stats.updated += 1;
 		log('Updating', ref.path, JSON.stringify(doc));
 	});
 
-	mitm(WriteBatch.prototype, 'delete', ([ref], stats, log) => {
+	mitm(admin.firestore.WriteBatch.prototype, 'delete', ([ref], stats, log) => {
 		stats.deleted += 1;
 		log('Deleting', ref.path);
 	});
 
-	mitm(CollectionReference.prototype, 'add', ([doc], stats, log) => {
+	mitm(admin.firestore.CollectionReference.prototype, 'add', ([doc], stats, log) => {
 		doc[skipWriteBatch] = true;
 		stats.added += 1;
 		log('Adding', JSON.stringify(doc));
@@ -97,7 +97,7 @@ function proxyWritableMethods() {
 }
 
 const dontTrack = Symbol('Skip async tracking to short circuit');
-async function trackAsync({log, file, forceWait}, fn) {
+async function trackAsync({ log, file, forceWait }, fn) {
 	// Track filenames for async handles
 	const activeHandles = new Map();
 	const emitter = new EventEmitter();
@@ -118,7 +118,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 				if (fn && fn[dontTrack]) {
 					return;
 				}
-				
+
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -173,7 +173,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 	const unhandled = reason => rejection = reason;
 	process.once('unhandledRejection', unhandled);
 	process.once('uncaughtException', unhandled);
-	
+
 	try {
 		const res = await fn();
 		await handleCheck();
@@ -188,7 +188,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 			return false;
 		}
 		return res;
-	} catch(e) {
+	} catch (e) {
 		log(e);
 		return false;
 	} finally {
@@ -197,7 +197,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({ path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false } = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -207,7 +207,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		}
 	}
 
-	const log = function() {
+	const log = function () {
 		return debug && console.log.apply(console, arguments);
 	}
 
@@ -242,7 +242,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	let files = filenames.map(filename => {
 		// Skip files that start with a dot
 		if (filename[0] === '.') return;
-		
+
 		const [filenameVersion, description] = filename.split('__');
 		const coerced = semver.coerce(filenameVersion);
 
@@ -259,7 +259,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 			throw new Error(`This filename doesn't match the required format: ${filename}`);
 		}
 
-		const {version} = coerced;
+		const { version } = coerced;
 
 		const existingFile = versionToFile.get(version);
 		if (existingFile) {
@@ -279,14 +279,14 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	log(`Found ${stats.scannedFiles} migration files`);
 
 	// Find the files after the latest migration number
-	statsMap.set(stats, {dryrun, log});
+	statsMap.set(stats, { dryrun, log });
 	dryrun && log('Making firestore read-only');
 	proxyWritableMethods();
 
 	if (!storageBucket && projectId) {
 		storageBucket = `${projectId}.appspot.com`;
 	}
-	
+
 	const providedApp = app;
 	if (!app) {
 		app = admin.initializeApp({
@@ -296,7 +296,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	}
 
 	// Use Firestore directly so we can mock for dryruns
-	const firestore = new Firestore({projectId});
+	const firestore = new admin.firestore.Firestore({ projectId });
 	firestore._fireway_stats = stats;
 
 	const collection = firestore.collection('fireway');
@@ -330,7 +330,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	for (const file of files) {
 		stats.executedFiles += 1;
 		log('Running', file.filename);
-		
+
 		let migration;
 		try {
 			migration = require(file.path);
@@ -340,12 +340,12 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		}
 
 		let start, finish;
-		const success = await trackAsync({log, file, forceWait}, async () => {
+		const success = await trackAsync({ log, file, forceWait }, async () => {
 			start = new Date();
 			try {
-				await migration.migrate({app, firestore, FieldValue, FieldPath, Timestamp, dryrun});
+				await migration.migrate({ app, firestore, FieldValue: admin.firestore.FieldValue, FieldPath: admin.firestore.FieldPath, Timestamp: admin.firestore.Timestamp, dryrun });
 				return true;
-			} catch(e) {
+			} catch (e) {
 				log(`Error in ${file.filename}`, e);
 				return false;
 			} finally {
@@ -387,7 +387,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		app.delete();
 	}
 
-	const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
+	const { scannedFiles, executedFiles, added, created, updated, set, deleted } = stats;
 	log('Finished all firestore migrations');
 	log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
 	log(`Docs added:${added} created:${created} updated:${updated} set:${set} deleted:${deleted}`);
@@ -397,4 +397,4 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	return stats;
 }
 
-module.exports = {migrate};
+module.exports = { migrate };

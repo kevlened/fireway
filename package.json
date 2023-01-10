@@ -34,12 +34,11 @@
     }
   },
   "dependencies": {
-    "@google-cloud/firestore": "^5.0.2",
     "callsites": "^3.1.0",
-    "firebase-admin": "^10.1.0",
-    "md5": "^2.2.1",
-    "sade": "^1.6.1",
-    "semver": "^7.3.7"
+    "firebase-admin": "^11.4.1",
+    "md5": "^2.3.0",
+    "sade": "^1.8.1",
+    "semver": "^7.3.8"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^1.0.4",
