@@ -25,13 +25,8 @@
     "emulator": "firebase emulators:start --only firestore",
     "test-runner": "node tests",
     "pretest": "mkdir -p tests/emptyMigration",
-    "test": "FIRESTORE_EMULATOR_HOST=0.0.0.0:8181 start-test emulator test-runner",
+    "test": "FIRESTORE_EMULATOR_HOST=0.0.0.0:8181 start-test emulator tcp:8181 test-runner",
     "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "yarn test"
-    }
   },
   "dependencies": {
     "callsites": "^3.1.0",
