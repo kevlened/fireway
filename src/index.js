@@ -356,7 +356,7 @@ async function migrate({path: dir, projectId, dryrun, debug = false, require: re
 		const success = await trackAsync({log, file, forceWait}, async () => {
 			start = new Date();
 			try {
-				await migration.migrate({firestore, secretManager, FieldValue, FieldPath, Timestamp, dryrun});
+				await migration.migrate({firestore, secretManager, projectId, FieldValue, FieldPath, Timestamp, dryrun});
 				return true;
 			} catch(e) {
 				log(`Error in ${file.filename}`, e);
