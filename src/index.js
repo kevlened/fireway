@@ -4,6 +4,7 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
+const admin = require('firebase-admin');
 const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const {GoogleAuth, Impersonated} = require('google-auth-library');
 const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
@@ -201,7 +202,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, dryrun, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({app, path: dir, projectId, dryrun, debug = false, require: req, forceWait = false} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -287,6 +288,13 @@ async function migrate({path: dir, projectId, dryrun, debug = false, require: re
 	dryrun && log('Making firestore read-only');
 	proxyWritableMethods();
 
+	const providedApp = app;
+	if (!app) {
+		app = admin.initializeApp({
+			projectId,
+		});
+	}
+
 	const client = await auth.getClient();
 
 	// Impersonate new credentials:
@@ -356,7 +364,7 @@ async function migrate({path: dir, projectId, dryrun, debug = false, require: re
 		const success = await trackAsync({log, file, forceWait}, async () => {
 			start = new Date();
 			try {
-				await migration.migrate({firestore, secretManager, projectId, FieldValue, FieldPath, Timestamp, dryrun});
+				await migration.migrate({firestore, secretManager, projectId, auth: app.auth(), FieldValue, FieldPath, Timestamp, dryrun});
 				return true;
 			} catch(e) {
 				log(`Error in ${file.filename}`, e);
@@ -395,6 +403,10 @@ async function migrate({path: dir, projectId, dryrun, debug = false, require: re
 		}
 	}
 
+	// Ensure firebase terminates
+	if (!providedApp) {
+		app.delete();
+	}
 	const {scannedFiles, executedFiles, added, created, updated, set, deleted} = stats;
 	log('Finished all firestore migrations');
 	log(`Files scanned:${scannedFiles} executed:${executedFiles}`);
