@@ -33,23 +33,26 @@
       "pre-push": "yarn test"
     }
   },
+  "peerDependencies": {
+    "firebase-admin": ">=10"
+  },
   "dependencies": {
-    "@google-cloud/firestore": "^5.0.2",
     "callsites": "^3.1.0",
-    "firebase-admin": "^10.1.0",
     "md5": "^2.2.1",
     "sade": "^1.6.1",
     "semver": "^7.3.7"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^1.0.4",
+    "@firebase/rules-unit-testing": "^2.0.7",
+    "@types/node": "^14.18.16",
     "capture-console": "^1.0.1",
-    "firebase-tools": "^10.7.2",
+    "firebase": "^9.21.0",
+    "firebase-admin": "^11.7.0",
+    "firebase-tools": "^11.29.1",
     "husky": "^4.2.5",
     "start-server-and-test": "^1.14.0",
     "tape": "^4.13.2",
     "ts-node": "^10.7.0",
-    "@types/node": "^14.18.16",
     "typescript": "^4.6.4"
   }
 }
