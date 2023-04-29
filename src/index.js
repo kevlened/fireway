@@ -4,8 +4,8 @@ const util = require('util');
 const os = require('os');
 const fs = require('fs');
 const md5 = require('md5');
-const admin = require('firebase-admin');
-const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
+const { initializeApp } = require('firebase-admin/app');
+const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('firebase-admin/firestore');
 const semver = require('semver');
 const asyncHooks = require('async_hooks');
 const callsites = require('callsites');
@@ -289,7 +289,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	
 	const providedApp = app;
 	if (!app) {
-		app = admin.initializeApp({
+		app = initializeApp({
 			projectId,
 			storageBucket
 		});
