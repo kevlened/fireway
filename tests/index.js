@@ -502,35 +502,35 @@ test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, f
 	}
 }));
 
-test('migrationCollection: should support optional migrationCollection option', wrapper(async ({t, projectId, firestore, app}) => {
-	const migrationCollection = "migrations"
 
-	try {
-		await fireway.migrate({
-			projectId,
-			path: __dirname + '/tsOpenTimeoutFailureMigration',
-			app,
-			forceWait: true,
-			migrationCollection
-		});
-		t.fail('Should throw an error');
-	} catch (e) {
-		const snapshot = await firestore.collection(migrationCollection).get();
-		t.equal(snapshot.size, 1);
-		await assertData(t, firestore, `${migrationCollection}/0-0.0.0-error`, {
-			checksum: 'e26a1eaed0c4f9549f6902001139cfb4',
-			description: 'error',
-			execution_time: 251,
-			installed_by: 'len',
-			installed_on: {
-				seconds: 1564681117,
-				nanoseconds: 401000000
-			},
-			installed_rank: 0,
-			script: 'v0__error.ts',
-			success: false,
-			type: 'ts',
-			version: '0.0.0'
-		});
-	}
+test('migrationCollection: should support optional migrationCollection option', wrapper(async ({ t, projectId, firestore, app }) => {
+    const migrationCollection = "migrations"
+
+    await fireway.migrate({
+        projectId,
+        path: __dirname + '/simpleMigration',
+        app,
+        migrationCollection
+    });
+
+    const snapshot = await firestore.collection(migrationCollection).get();
+    let dataSnapshot = await firestore.collection('data').get();
+    t.equal(snapshot.size, 1);
+    t.equal(dataSnapshot.size, 1);
+    await assertData(t, firestore, `${migrationCollection}/0-0.0.0-simpleMigration`, {
+        checksum: 'd513c9c53f4e0b8aaa626854a75f2ccd',
+        description: 'simpleMigration',
+        execution_time: 25,
+        installed_rank: 0,
+        installed_by: 'len',
+        installed_on: {
+            seconds: 1564681117,
+            nanoseconds: 401000000
+        },
+        script: 'v0__simpleMigration.js',
+        success: true,
+        type: 'js',
+        version: '0.0.0'
+    });
 }));
+
