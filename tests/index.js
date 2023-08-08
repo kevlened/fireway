@@ -503,21 +503,21 @@ test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, f
 }));
 
 
-test('migrationCollection: should support optional migrationCollection option', wrapper(async ({ t, projectId, firestore, app }) => {
-    const migrationCollection = "migrations"
+test('migrationsCollection: should support optional migrationsCollection option', wrapper(async ({ t, projectId, firestore, app }) => {
+    const migrationsCollection = "migrations"
 
     await fireway.migrate({
         projectId,
         path: __dirname + '/simpleMigration',
         app,
-        migrationCollection
+        migrationsCollection
     });
 
-    const snapshot = await firestore.collection(migrationCollection).get();
+    const snapshot = await firestore.collection(migrationsCollection).get();
     let dataSnapshot = await firestore.collection('data').get();
     t.equal(snapshot.size, 1);
     t.equal(dataSnapshot.size, 1);
-    await assertData(t, firestore, `${migrationCollection}/0-0.0.0-simpleMigration`, {
+    await assertData(t, firestore, `${migrationsCollection}/0-0.0.0-simpleMigration`, {
         checksum: 'd513c9c53f4e0b8aaa626854a75f2ccd',
         description: 'simpleMigration',
         execution_time: 25,

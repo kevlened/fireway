@@ -197,7 +197,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false, migrationCollection = 'fireway'} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false, migrationsCollection = 'fireway'} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -231,8 +231,8 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	}
 
 	// Ensure migration collection is provided and not an empty string
-	if (!migrationCollection || !migrationCollection.trim()) {
-		throw new Error(`Invalid migration collection name provided: ${migrationCollection}`);
+	if (!migrationsCollection || !migrationsCollection.trim()) {
+		throw new Error(`Invalid migration collection name provided: ${migrationsCollection}`);
 	}
 
 	const filenames = [];
@@ -304,7 +304,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	const firestore = new Firestore({projectId});
 	firestore._fireway_stats = stats;
 
-	const collection = firestore.collection(migrationCollection);
+	const collection = firestore.collection(migrationsCollection);
 
 	// Get the latest migration
 	const result = await collection
