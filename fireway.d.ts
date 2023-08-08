@@ -5,4 +5,5 @@ export interface MigrateOptions {
 	FieldPath: typeof import("@google-cloud/firestore").FieldPath;
 	Timestamp: typeof import("@google-cloud/firestore").Timestamp;
 	dryrun: boolean;
+	migrationCollection: string;
 }

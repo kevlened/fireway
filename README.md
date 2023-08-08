@@ -51,12 +51,13 @@ Usage
   $ fireway migrate [options]
 
 Options
-  --path         Path to migration files  (default ./migrations)
-  --projectId    Target firebase project
-  --dryrun       Simulates changes
-  --forceWait    Forces waiting for migrations that do not strictly manage async calls
-  --require      Requires a module before executing
-  -h, --help     Displays this message
+  --path                  Path to migration files  (default ./migrations)
+  --projectId             Target firebase project
+  --dryrun                Simulates changes
+  --forceWait             Forces waiting for migrations that do not strictly manage async calls
+  --require               Requires a module before executing
+  --migrationCollection   Firestore collection to store migration state (default fireway)
+  -h, --help              Displays this message
 
 Examples
   $ fireway migrate
@@ -64,6 +65,7 @@ Examples
   $ fireway migrate --projectId=my-staging-id
   $ fireway migrate --dryrun
   $ fireway migrate --forceWait
+  $ fireway migrate --migrationCollection=migrations
   $ fireway --require="ts-node/register" migrate
 ```
 

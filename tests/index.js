@@ -501,3 +501,36 @@ test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, f
 		});
 	}
 }));
+
+test('migrationCollection: should support optional migrationCollection option', wrapper(async ({t, projectId, firestore, app}) => {
+	const migrationCollection = "migrations"
+
+	try {
+		await fireway.migrate({
+			projectId,
+			path: __dirname + '/tsOpenTimeoutFailureMigration',
+			app,
+			forceWait: true,
+			migrationCollection
+		});
+		t.fail('Should throw an error');
+	} catch (e) {
+		const snapshot = await firestore.collection(migrationCollection).get();
+		t.equal(snapshot.size, 1);
+		await assertData(t, firestore, `${migrationCollection}/0-0.0.0-error`, {
+			checksum: 'e26a1eaed0c4f9549f6902001139cfb4',
+			description: 'error',
+			execution_time: 251,
+			installed_by: 'len',
+			installed_on: {
+				seconds: 1564681117,
+				nanoseconds: 401000000
+			},
+			installed_rank: 0,
+			script: 'v0__error.ts',
+			success: false,
+			type: 'ts',
+			version: '0.0.0'
+		});
+	}
+}));

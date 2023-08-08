@@ -118,7 +118,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 				if (fn && fn[dontTrack]) {
 					return;
 				}
-				
+
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -173,7 +173,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 	const unhandled = reason => rejection = reason;
 	process.once('unhandledRejection', unhandled);
 	process.once('uncaughtException', unhandled);
-	
+
 	try {
 		const res = await fn();
 		await handleCheck();
@@ -197,7 +197,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false, migrationCollection = 'fireway'} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -230,6 +230,11 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		throw new Error(`No directory at ${dir}`);
 	}
 
+	// Ensure migration collection is provided and not an empty string
+	if (!migrationCollection || !migrationCollection.trim()) {
+		throw new Error(`Invalid migration collection name provided: ${migrationCollection}`);
+	}
+
 	const filenames = [];
 	for (const file of await readdir(dir)) {
 		if (!(await stat(path.join(dir, file))).isDirectory()) {
@@ -242,7 +247,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	let files = filenames.map(filename => {
 		// Skip files that start with a dot
 		if (filename[0] === '.') return;
-		
+
 		const [filenameVersion, description] = filename.split('__');
 		const coerced = semver.coerce(filenameVersion);
 
@@ -286,7 +291,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	if (!storageBucket && projectId) {
 		storageBucket = `${projectId}.appspot.com`;
 	}
-	
+
 	const providedApp = app;
 	if (!app) {
 		app = admin.initializeApp({
@@ -299,7 +304,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	const firestore = new Firestore({projectId});
 	firestore._fireway_stats = stats;
 
-	const collection = firestore.collection('fireway');
+	const collection = firestore.collection(migrationCollection);
 
 	// Get the latest migration
 	const result = await collection
@@ -330,7 +335,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	for (const file of files) {
 		stats.executedFiles += 1;
 		log('Running', file.filename);
-		
+
 		let migration;
 		try {
 			migration = require(file.path);
