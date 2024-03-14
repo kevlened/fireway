@@ -30,7 +30,7 @@
     "ci:publish": "pnpm publish -r"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^5.0.2",
+    "@google-cloud/firestore": "^7.3.1",
     "callsites": "^3.1.0",
     "firebase-admin": "^10.1.0",
     "md5": "^2.2.1",
