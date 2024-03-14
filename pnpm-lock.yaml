@@ -844,7 +844,7 @@ packages:
       '@types/long': 4.0.1
       lodash.camelcase: 4.3.0
       long: 4.0.0
-      protobufjs: 6.11.2
+      protobufjs: 6.11.4
       yargs: 16.2.0
     dev: true
 
@@ -5628,8 +5628,8 @@ packages:
       uglify-js: 3.17.4
     dev: true
 
-  /protobufjs@6.11.2:
-    resolution: {integrity: sha512-4BQJoPooKJl2G9j3XftkIXjoC9C0Av2NOrWmbLWT1vH32GcSUHjM0Arra6UfTsVyfMAuFzaLucXn1sadxJydAw==}
+  /protobufjs@6.11.4:
+    resolution: {integrity: sha512-5kQWPaJHi1WoCpjTGszzQ32PG2F4+wRY6BmAT4Vfw56Q2FZ4YZzK20xUYQH4YkfehY1e6QSICrJquM6xXZNcrw==}
     hasBin: true
     requiresBuild: true
     dependencies:
