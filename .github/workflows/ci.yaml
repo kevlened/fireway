@@ -38,6 +38,8 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - run: git status
+
       - name: create and publish versions
         uses: changesets/action@v1
         with:
