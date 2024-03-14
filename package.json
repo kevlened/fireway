@@ -1,8 +1,8 @@
 {
-  "name": "fireway",
+  "name": "fireblaze",
   "version": "1.1.0",
   "description": "Schema migration tool for Firestore",
-  "types": "fireway.d.ts",
+  "types": "fireblaze.d.ts",
   "keywords": [
     "schema",
     "migration",
@@ -13,12 +13,12 @@
     "/src",
     "LICENSE",
     "README.md",
-    "fireway.d.ts"
+    "fireblaze.d.ts"
   ],
   "main": "src/index.js",
   "bin": "src/cli.js",
-  "repository": "git@github.com:kevlened/fireway.git",
-  "author": "kevlened <boyettel@gmail.com>",
+  "repository": "git@github.com:jackall3n/fireblaze.git",
+  "author": "jackall3n <jackallesemail+git@gmail.com>",
   "license": "MIT",
   "scripts": {
     "setup": "firebase setup:emulators:firestore",

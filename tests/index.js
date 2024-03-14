@@ -1,7 +1,7 @@
 const test = require('tape');
 const firebase = require('@firebase/rules-unit-testing');
 const terminal = require('./console-tester');
-let fireway = require('../');
+let fireblaze = require('../');
 
 function wrapper(fn) {
 	return async (t) => {
@@ -24,12 +24,12 @@ function wrapper(fn) {
 async function setup() {
 	// Clear the require cache
 	Object.keys(require.cache).map(key => { delete require.cache[key]; });
-	fireway = require('../');
+	fireblaze = require('../');
 
 	// Clear the terminal tracking
 	terminal.reset();
 
-	const projectId = `fireway-test-${Date.now()}`;
+	const projectId = `fireblaze-test-${Date.now()}`;
 	const app = await firebase.initializeAdminApp({projectId});
 	const firestore = app.firestore();
 	return {projectId, firestore, app};
@@ -67,27 +67,27 @@ async function assertData(t, firestore, path, value) {
 
 test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
 	// Empty migration
-	const stats0 = await fireway.migrate({
+	const stats0 = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/emptyMigration',
 		app
 	});
-	let snapshot = await firestore.collection('fireway').get();
+	let snapshot = await firestore.collection('fireblaze').get();
 	t.equal(snapshot.size, 0);
 
 	// First migration
-	const stats1 = await fireway.migrate({
+	const stats1 = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/oneMigration',
 		app
 	});
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 1);
 	let [doc1] = dataSnapshot.docs;
 	t.deepEqual(doc1.data(), {key: 'value'});
-	await assertData(t, firestore, 'fireway/0-0.0.0-first', {
+	await assertData(t, firestore, 'fireblaze/0-0.0.0-first', {
 		checksum: '3a29bfbd4a83273c613ca3d9bf40e549',
 		description: 'first',
 		execution_time: 251,
@@ -104,12 +104,12 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
 	});
 
 	// Second migration
-	const stats2 = await fireway.migrate({
+	const stats2 = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/iterativeMigration',
 		app
 	});
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 2);
 	t.equal(dataSnapshot.size, 2);
@@ -117,7 +117,7 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
 	const doc2 = dataSnapshot.docs[1];
 	t.deepEqual(doc1.data(), {key: 'value'});
 	t.deepEqual(doc2.data(), {key: 'value'});
-	await assertData(t, firestore, 'fireway/1-0.1.0-second', {
+	await assertData(t, firestore, 'fireblaze/1-0.1.0-second', {
 		checksum: '95031069f80997d046b3cf405af9b524',
 		description: 'second',
 		execution_time: 251,
@@ -164,16 +164,16 @@ test('merge: iterative', wrapper(async ({t, projectId, firestore, app}) => {
 
 test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) => {
 	try {
-		await fireway.migrate({
+		await fireblaze.migrate({
 			projectId,
 			path: __dirname + '/errorMigration',
 			app
 		});
 		t.fail('Should throw an error');
 	} catch (e) {
-		const snapshot = await firestore.collection('fireway').get();
+		const snapshot = await firestore.collection('fireblaze').get();
 		t.equal(snapshot.size, 1);
-		await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+		await assertData(t, firestore, 'fireblaze/0-0.0.0-error', {
 			checksum: '82c81f69f2c5276ef1eefff58c62ce5a',
 			description: 'error',
 			execution_time: 251,
@@ -191,14 +191,14 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) =>
 	}
 
 	try {
-		await fireway.migrate({
+		await fireblaze.migrate({
 			projectId,
 			path: __dirname + '/errorIterativeMigration',
 			app
 		});
 		t.fail('Should throw an error');
 	} catch (e) {
-		const snapshot = await firestore.collection('fireway').get();
+		const snapshot = await firestore.collection('fireblaze').get();
 		const dataSnapshot = await firestore.collection('data').get();
 		t.equal(snapshot.size, 1);
 		t.equal(dataSnapshot.size, 0);
@@ -206,39 +206,39 @@ test('merge: error iterative', wrapper(async ({t, projectId, firestore, app}) =>
 }));
 
 test('dryrun', wrapper(async ({t, projectId, firestore, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		dryrun: true,
 		projectId,
 		path: __dirname + '/oneMigration',
 		app
 	});
 
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 0);
 	t.equal(dataSnapshot.size, 0);
 }));
 
 test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/oneMigration',
 		app
 	});
 
-	let snapshot = await firestore.collection('fireway').get();
+	let snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 1);
 
-	await fireway.migrate({
+	await fireblaze.migrate({
 		dryrun: true,
 		projectId,
 		path: __dirname + '/deleteMigration',
 		app
 	});
 
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 1);
@@ -246,7 +246,7 @@ test('dryrun: delete', wrapper(async ({t, projectId, firestore, app}) => {
 
 test('invalid name', wrapper(async ({t, projectId, firestore, app}) => {
 	try {
-		await fireway.migrate({
+		await fireblaze.migrate({
 			projectId,
 			path: __dirname + '/invalidNameMigration',
 			app
@@ -254,19 +254,19 @@ test('invalid name', wrapper(async ({t, projectId, firestore, app}) => {
 		t.fail('Should throw an error');
 	} catch (e) {
 		t.assert(/This filename doesn't match the required format.*/.test(e.message));
-		const snapshot = await firestore.collection('fireway').get();
+		const snapshot = await firestore.collection('fireblaze').get();
 		t.equal(snapshot.size, 0);
 	}
 }));
 
 test('batch: migration count', wrapper(async ({t, projectId, firestore, app}) => {
-	const stats = await fireway.migrate({
+	const stats = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/batchMigration',
 		app
 	});
 
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 2);
@@ -282,13 +282,13 @@ test('batch: migration count', wrapper(async ({t, projectId, firestore, app}) =>
 }));
 
 test('all methods', wrapper(async ({t, projectId, firestore, app}) => {
-	const stats = await fireway.migrate({
+	const stats = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/allMethodMigration',
 		app
 	});
 
-	const snapshot = await firestore.collection('fireway').get();
+	const snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 3);
@@ -304,20 +304,20 @@ test('all methods', wrapper(async ({t, projectId, firestore, app}) => {
 }));
 
 test('async: unhandled async warning', wrapper(async ({t, projectId, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/openTimeoutMigration',
 		app
 	});
 
 	t.equal(
-		terminal.includes('WARNING: fireway detected open async calls'),
+		terminal.includes('WARNING: fireblaze detected open async calls'),
 		true
 	);
 }));
 
 test('async: handle unhandled async', wrapper(async ({t, projectId, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/openTimeoutMigration',
 		app,
@@ -325,14 +325,14 @@ test('async: handle unhandled async', wrapper(async ({t, projectId, app}) => {
 	});
 
 	t.equal(
-		terminal.includes('WARNING: fireway detected open async calls'),
+		terminal.includes('WARNING: fireblaze detected open async calls'),
 		false
 	);
 }));
 
 test('async: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
 	try {
-		await fireway.migrate({
+		await fireblaze.migrate({
 			projectId,
 			path: __dirname + '/openTimeoutFailureMigration',
 			app,
@@ -340,9 +340,9 @@ test('async: handle unhandled async error', wrapper(async ({t, projectId, firest
 		});
 		t.fail('Should throw an error');
 	} catch (e) {
-		const snapshot = await firestore.collection('fireway').get();
+		const snapshot = await firestore.collection('fireblaze').get();
 		t.equal(snapshot.size, 1);
-		await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+		await assertData(t, firestore, 'fireblaze/0-0.0.0-error', {
 			checksum: '195c7acd6b71af2f4cae0c422032781e',
 			description: 'error',
 			execution_time: 251,
@@ -361,26 +361,26 @@ test('async: handle unhandled async error', wrapper(async ({t, projectId, firest
 }));
 
 test('async: unhandled async in dryrun', wrapper(async ({t, projectId, firestore, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/oneMigration',
 		app
 	});
 
-	await fireway.migrate({
+	await fireblaze.migrate({
 		dryrun: true,
 		projectId,
 		path: __dirname + '/openTimeoutDryrun',
 		app
 	});
 
-	const snapshot = await firestore.collection('fireway').get();
+	const snapshot = await firestore.collection('fireblaze').get();
 	const dataSnapshot = await firestore.collection('data').get();
 	const [doc1] = dataSnapshot.docs;
 	t.equal(snapshot.size, 1);
 	t.deepEqual(doc1.data(), {key: 'value'});
 	t.equal(
-		terminal.includes('WARNING: fireway detected open async calls'),
+		terminal.includes('WARNING: fireblaze detected open async calls'),
 		true
 	);
 }));
@@ -391,13 +391,13 @@ test('Delete a field', wrapper(async ({t, projectId, firestore, app}) => {
 		field2: 'field2'
 	})
 
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/deleteFieldMigration',
 		app
 	});
 
-	snapshot = await firestore.collection('fireway').get();
+	snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 1);
@@ -407,14 +407,14 @@ test('Delete a field', wrapper(async ({t, projectId, firestore, app}) => {
 }));
 
 test('TypeScript (run all TS last for perf reasons and only require TS once)', wrapper(async ({t, projectId, firestore, app}) => {
-	const stats = await fireway.migrate({
+	const stats = await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/tsMigration',
 		app,
 		require: 'ts-node/register'
 	});
 
-	const snapshot = await firestore.collection('fireway').get();
+	const snapshot = await firestore.collection('fireblaze').get();
 	let dataSnapshot = await firestore.collection('data').get();
 	t.equal(snapshot.size, 1);
 	t.equal(dataSnapshot.size, 1);
@@ -428,7 +428,7 @@ test('TypeScript (run all TS last for perf reasons and only require TS once)', w
 		added: 0
 	});
 
-	await assertData(t, firestore, 'fireway/0-0.0.0-first', {
+	await assertData(t, firestore, 'fireblaze/0-0.0.0-first', {
 		checksum: 'e54bcdef27f8938eefbdafc5ed32341a',
 		description: 'first',
 		execution_time: 251,
@@ -446,20 +446,20 @@ test('TypeScript (run all TS last for perf reasons and only require TS once)', w
 }));
 
 test('TypeScript: unhandled async warning', wrapper(async ({t, projectId, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/tsOpenTimeoutMigration',
 		app
 	});
 
 	t.equal(
-		terminal.includes('WARNING: fireway detected open async calls'),
+		terminal.includes('WARNING: fireblaze detected open async calls'),
 		true
 	);
 }));
 
 test('TypeScript: handle unhandled async', wrapper(async ({t, projectId, app}) => {
-	await fireway.migrate({
+	await fireblaze.migrate({
 		projectId,
 		path: __dirname + '/tsOpenTimeoutMigration',
 		app,
@@ -467,14 +467,14 @@ test('TypeScript: handle unhandled async', wrapper(async ({t, projectId, app}) =
 	});
 
 	t.equal(
-		terminal.includes('WARNING: fireway detected open async calls'),
+		terminal.includes('WARNING: fireblaze detected open async calls'),
 		false
 	);
 }));
 
 test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, firestore, app}) => {
 	try {
-		await fireway.migrate({
+		await fireblaze.migrate({
 			projectId,
 			path: __dirname + '/tsOpenTimeoutFailureMigration',
 			app,
@@ -482,9 +482,9 @@ test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, f
 		});
 		t.fail('Should throw an error');
 	} catch (e) {
-		const snapshot = await firestore.collection('fireway').get();
+		const snapshot = await firestore.collection('fireblaze').get();
 		t.equal(snapshot.size, 1);
-		await assertData(t, firestore, 'fireway/0-0.0.0-error', {
+		await assertData(t, firestore, 'fireblaze/0-0.0.0-error', {
 			checksum: 'e26a1eaed0c4f9549f6902001139cfb4',
 			description: 'error',
 			execution_time: 251,
@@ -506,7 +506,7 @@ test('TypeScript: handle unhandled async error', wrapper(async ({t, projectId, f
 test('migrationsCollection: should support optional migrationsCollection option', wrapper(async ({ t, projectId, firestore, app }) => {
     const migrationsCollection = "migrations"
 
-    await fireway.migrate({
+    await fireblaze.migrate({
         projectId,
         path: __dirname + '/simpleMigration',
         app,
