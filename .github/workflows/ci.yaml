@@ -35,7 +35,12 @@ jobs:
           cache: "pnpm"
 
       - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install packages
         run: pnpm install
@@ -48,6 +53,6 @@ jobs:
       - name: create and publish versions
         uses: changesets/action@v1
         with:
-          publish: pnpm ci:publish --no-git-checks
+          publish: pnpm ci:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
