@@ -1,6 +1,6 @@
 {
   "name": "fireblaze",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Schema migration tool for Firestore",
   "types": "fireblaze.d.ts",
   "keywords": [
