@@ -31,21 +31,21 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.3.1",
-    "callsites": "^3.1.0",
+    "callsites": "^4.1.0",
     "firebase-admin": "^12.0.0",
-    "md5": "^2.2.1",
-    "sade": "^1.6.1",
-    "semver": "^7.3.7"
+    "md5": "^2.3.0",
+    "sade": "^1.8.1",
+    "semver": "^7.6.0"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@firebase/rules-unit-testing": "^1.0.4",
-    "@types/node": "^14.18.16",
-    "capture-console": "^1.0.1",
+    "@firebase/rules-unit-testing": "^3.0.1",
+    "@types/node": "^20.11.27",
+    "capture-console": "^1.0.2",
     "firebase-tools": "^13.5.0",
     "start-server-and-test": "^2.0.3",
     "tape": "^5.7.5",
-    "ts-node": "^10.7.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.2"
   }
 }
