@@ -30,7 +30,8 @@ async function setup() {
 	terminal.reset();
 
 	const projectId = `fireblaze-test-${Date.now()}`;
-	const app = await firebase.initializeAdminApp({projectId});
+	const testEnvironment = await firebase.initializeTestEnvironment({projectId});
+	const app = testEnvironment.unauthenticatedContext();
 	const firestore = app.firestore();
 	return {projectId, firestore, app};
 }
