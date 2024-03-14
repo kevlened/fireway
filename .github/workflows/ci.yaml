@@ -34,6 +34,9 @@ jobs:
       - name: install dependencies
         run: pnpm install
 
+      - name: Run tests
+        run: pnpm test
+
       - name: create and publish versions
         uses: changesets/action@v1
         with:
