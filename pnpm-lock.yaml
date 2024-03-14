@@ -48,10 +48,10 @@ devDependencies:
     version: 5.7.5
   ts-node:
     specifier: ^10.7.0
-    version: 10.7.0(@types/node@14.18.16)(typescript@4.6.4)
+    version: 10.7.0(@types/node@14.18.16)(typescript@5.4.2)
   typescript:
-    specifier: ^4.6.4
-    version: 4.6.4
+    specifier: ^5.4.2
+    version: 5.4.2
 
 packages:
 
@@ -6782,7 +6782,7 @@ packages:
     resolution: {integrity: sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==}
     dev: true
 
-  /ts-node@10.7.0(@types/node@14.18.16)(typescript@4.6.4):
+  /ts-node@10.7.0(@types/node@14.18.16)(typescript@5.4.2):
     resolution: {integrity: sha512-TbIGS4xgJoX2i3do417KSaep1uRAW/Lu+WAL2doDHC0D6ummjirVOXU5/7aiZotbQ5p1Zp9tP7U6cYhA0O7M8A==}
     hasBin: true
     peerDependencies:
@@ -6808,7 +6808,7 @@ packages:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 4.6.4
+      typescript: 5.4.2
       v8-compile-cache-lib: 3.0.0
       yn: 3.1.1
     dev: true
@@ -6949,9 +6949,9 @@ packages:
     dependencies:
       is-typedarray: 1.0.0
 
-  /typescript@4.6.4:
-    resolution: {integrity: sha512-9ia/jWHIEbo49HfjrLGfKbZSuWo9iTMwXO+Ca3pRsSpbsMbc7/IU8NKdCZVRRBafVPGnoJeFL76ZOAA84I9fEg==}
-    engines: {node: '>=4.2.0'}
+  /typescript@5.4.2:
+    resolution: {integrity: sha512-+2/g0Fds1ERlP6JsakQQDXjZdZMM+rqpamFZJEKh4kwTIn3iDkgKtby0CeNd5ATNZ4Ry1ax15TMx0W2V+miizQ==}
+    engines: {node: '>=14.17'}
     hasBin: true
     dev: true
 
