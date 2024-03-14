@@ -44,7 +44,7 @@
     "capture-console": "^1.0.1",
     "firebase-tools": "^10.7.2",
     "start-server-and-test": "^1.14.0",
-    "tape": "^4.13.2",
+    "tape": "^5.7.5",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   }
