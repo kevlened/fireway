@@ -22,7 +22,7 @@ dependencies:
     version: 1.7.4
   semver:
     specifier: ^7.3.7
-    version: 7.3.7
+    version: 7.6.0
 
 devDependencies:
   '@changesets/cli':
@@ -942,7 +942,7 @@ packages:
     requiresBuild: true
     dependencies:
       '@gar/promisify': 1.1.2
-      semver: 7.3.7
+      semver: 7.6.0
     dev: true
     optional: true
 
@@ -2861,7 +2861,7 @@ packages:
       pump: 3.0.0
       qs: 6.9.4
       raw-body: 2.4.2
-      semver: 7.3.7
+      semver: 7.6.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5091,7 +5091,7 @@ packages:
       nopt: 5.0.0
       npmlog: 6.0.0
       rimraf: 3.0.2
-      semver: 7.3.7
+      semver: 7.6.0
       tar: 6.1.11
       which: 2.0.2
     transitivePeerDependencies:
@@ -6088,20 +6088,12 @@ packages:
     resolution: {integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==}
     hasBin: true
 
-  /semver@7.3.7:
-    resolution: {integrity: sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      lru-cache: 6.0.0
-
   /semver@7.6.0:
     resolution: {integrity: sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /send@0.17.1:
     resolution: {integrity: sha512-BsVKsiGcQMFwT8UxypobUKyv7irCNRHk1T0G680vk88yf6LBByGcZJOTJCrTP2xVN6yI+XjPJcNuE3V4fT9sAg==}
@@ -7034,7 +7026,7 @@ packages:
       is-yarn-global: 0.3.0
       latest-version: 5.1.0
       pupa: 2.1.1
-      semver: 7.3.7
+      semver: 7.6.0
       semver-diff: 3.1.1
       xdg-basedir: 4.0.0
     dev: true
