@@ -9,7 +9,8 @@ env:
   CI: true
 
 jobs:
-  version:
+  run-tests:
+    name: Run tests
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
