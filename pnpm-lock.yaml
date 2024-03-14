@@ -4334,8 +4334,8 @@ packages:
       valid-url: 1.0.9
     dev: true
 
-  /jose@2.0.5:
-    resolution: {integrity: sha512-BAiDNeDKTMgk4tvD0BbxJ8xHEHBZgpeRZ1zGPPsitSyMgjoMWiLGYAE7H7NpP5h0lPppQajQs871E8NHUrzVPA==}
+  /jose@2.0.7:
+    resolution: {integrity: sha512-5hFWIigKqC+e/lRyQhfnirrAqUdIPMB7SJRqflJaO29dW7q5DFvH1XCSTmv6PQ6pb++0k6MJlLRoS0Wv4s38Wg==}
     engines: {node: '>=10.13.0 < 13 || >=13.7.0'}
     dependencies:
       '@panva/asn1.js': 1.0.0
@@ -4446,7 +4446,7 @@ packages:
     dependencies:
       '@types/express-jwt': 0.0.42
       debug: 4.3.4
-      jose: 2.0.5
+      jose: 2.0.7
       limiter: 1.1.5
       lru-memoizer: 2.1.4
     transitivePeerDependencies:
