@@ -170,11 +170,11 @@ Migration results are stored in the `fireblaze` collection in `firestore`
 
 ```bash
 # To install packages and firestore emulator
-$ yarn
-$ yarn setup
+$ pnpm
+$ pnpm setup
 
 # To run tests
-$ yarn test
+$ pnpm test
 ```
 
 ## License
