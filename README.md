@@ -1,5 +1,5 @@
 # fireblaze
-A fork of the useful (but seemly dead) project [fireblaze](https://github.com/kevlened/fireblaze)
+A fork of the useful (but seemly dead) project [fireway](https://github.com/kevlened/fireway)
 
 ## Install
 
