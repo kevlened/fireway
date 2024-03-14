@@ -429,7 +429,7 @@ test('TypeScript (run all TS last for perf reasons and only require TS once)', w
 	});
 
 	await assertData(t, firestore, 'fireblaze/0-0.0.0-first', {
-		checksum: 'e54bcdef27f8938eefbdafc5ed32341a',
+		checksum: 'acf94b39735d49afce34080231710e37',
 		description: 'first',
 		execution_time: 251,
 		installed_by: 'len',
@@ -518,7 +518,7 @@ test('migrationsCollection: should support optional migrationsCollection option'
     t.equal(snapshot.size, 1);
     t.equal(dataSnapshot.size, 1);
     await assertData(t, firestore, `${migrationsCollection}/0-0.0.0-simpleMigration`, {
-        checksum: 'd513c9c53f4e0b8aaa626854a75f2ccd',
+        checksum: '8b6a55ec6d85218b574438cc614776ec',
         description: 'simpleMigration',
         execution_time: 25,
         installed_rank: 0,
