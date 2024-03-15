@@ -1,8 +1,8 @@
 {
-  "name": "fireway",
-  "version": "1.1.0",
+  "name": "fireblaze",
+  "version": "1.4.0",
   "description": "Schema migration tool for Firestore",
-  "types": "fireway.d.ts",
+  "types": "fireblaze.d.ts",
   "keywords": [
     "schema",
     "migration",
@@ -13,43 +13,39 @@
     "/src",
     "LICENSE",
     "README.md",
-    "fireway.d.ts"
+    "fireblaze.d.ts"
   ],
   "main": "src/index.js",
   "bin": "src/cli.js",
-  "repository": "git@github.com:kevlened/fireway.git",
-  "author": "kevlened <boyettel@gmail.com>",
+  "repository": "git@github.com:jackall3n/fireblaze.git",
+  "author": "jackall3n <jackallesemail+git@gmail.com>",
   "license": "MIT",
   "scripts": {
     "setup": "firebase setup:emulators:firestore",
     "emulator": "firebase emulators:start --only firestore",
     "test-runner": "node tests",
     "pretest": "mkdir -p tests/emptyMigration",
-    "test": "FIRESTORE_EMULATOR_HOST=0.0.0.0:8181 start-test emulator tcp:8181 test-runner",
-    "release": "yarn test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish"
-  },
-  "husky": {
-    "hooks": {
-      "pre-push": "yarn test"
-    }
+    "test": "pnpm pretest && FIRESTORE_EMULATOR_HOST=0.0.0.0:8181 start-test emulator tcp:8181 test-runner",
+    "release": "pnpm test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm login && npm publish",
+    "ci:publish": "pnpm publish -r"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^5.0.2",
+    "@google-cloud/firestore": "^7.3.1",
     "callsites": "^3.1.0",
-    "firebase-admin": "^10.1.0",
-    "md5": "^2.2.1",
-    "sade": "^1.6.1",
-    "semver": "^7.3.7"
+    "firebase-admin": "^12.0.0",
+    "md5": "^2.3.0",
+    "sade": "^1.8.1",
+    "semver": "^7.6.0"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^1.0.4",
-    "capture-console": "^1.0.1",
-    "firebase-tools": "^10.7.2",
-    "husky": "^4.2.5",
-    "start-server-and-test": "^1.14.0",
-    "tape": "^4.13.2",
-    "ts-node": "^10.7.0",
-    "@types/node": "^14.18.16",
-    "typescript": "^4.6.4"
+    "@changesets/cli": "^2.27.1",
+    "@firebase/rules-unit-testing": "^3.0.1",
+    "@types/node": "^20.11.27",
+    "capture-console": "^1.0.2",
+    "firebase-tools": "^13.5.0",
+    "start-server-and-test": "^2.0.3",
+    "tape": "^5.7.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
   }
 }

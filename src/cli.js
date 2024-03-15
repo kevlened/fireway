@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 const sade = require('sade');
-const fireway = require('./index');
+const fireblaze = require('./index');
 const pkg = require('../package.json');
 
-const prog = sade('fireway').version(pkg.version);
+const prog = sade('fireblaze').version(pkg.version);
 
 prog
     .option('--require', 'Requires a module before executing')
@@ -16,7 +16,8 @@ prog
     .option('--projectId', 'Target firebase project')
     .option('--dryrun', 'Simulates changes')
     .option('--forceWait', 'Forces waiting for migrations that do not strictly manage async calls')
-    .option('--quiet', 'disables console debug logging within fireway\'s migrate')
+    .option('--quiet', 'disables console debug logging within fireblaze\'s migrate')
+    .option('--migrationsCollection', 'Firestore collection to store migration state', 'fireblaze')
     .describe('Migrates schema to the latest version')
     .example('migrate')
     .example('migrate --path=./my-migrations')
@@ -28,11 +29,11 @@ prog
     .action(async (opts) => {
         try {
             opts.debug = !opts.quiet;
-            await fireway.migrate(opts)
+            await fireblaze.migrate(opts)
         } catch (e) {
             console.log('ERROR:', e.message);
             process.exit(1);
         }
     });
-    
+
 prog.parse(process.argv);

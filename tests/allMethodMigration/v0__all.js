@@ -1,4 +1,4 @@
-/** @param { import('../../fireway').MigrateOptions } */
+/** @param { import('../../fireblaze').MigrateOptions } */
 module.exports.migrate = async ({firestore}) => {
     const batch = firestore.batch();
 

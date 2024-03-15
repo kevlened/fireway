@@ -1,19 +1,19 @@
-# fireway
-A schema migration tool for firestore heavily inspired by [flyway](https://flywaydb.org/)
+# fireblaze
+A fork of the useful (but seemly dead) project [fireway](https://github.com/kevlened/fireway)
 
 ## Install
 
 ```bash
-yarn global add fireway
+yarn global add fireblaze
 
 # or 
 
-npx fireway
+npx fireblaze
 ```
 
 ## Credentials
 
-In order to fireway be able to connect to firestore you need to set up the environment variable `GOOGLE_APPLICATION_CREDENTIALS` with service account file path.
+In order to fireblaze be able to connect to firestore you need to set up the environment variable `GOOGLE_APPLICATION_CREDENTIALS` with service account file path.
 
 Example:
 ```bash
@@ -24,13 +24,13 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/firestore-service-account.json"
 
 ```bash
 Usage
-  $ fireway <command> [options]
+  $ fireblaze <command> [options]
 
 Available Commands
   migrate    Migrates schema to the latest version
 
 For more info, run any command with the `--help` flag
-  $ fireway migrate --help
+  $ fireblaze migrate --help
 
 Options
   --require        Requires a module before executing
@@ -38,33 +38,35 @@ Options
   -h, --help       Displays this message
 
 Examples
-  $ fireway migrate
-  $ fireway --require="ts-node/register" migrate
+  $ fireblaze migrate
+  $ fireblaze --require="ts-node/register" migrate
 ```
 
-### `fireway migrate`
+### `fireblaze migrate`
 ```bash
 Description
   Migrates schema to the latest version
 
 Usage
-  $ fireway migrate [options]
+  $ fireblaze migrate [options]
 
 Options
-  --path         Path to migration files  (default ./migrations)
-  --projectId    Target firebase project
-  --dryrun       Simulates changes
-  --forceWait    Forces waiting for migrations that do not strictly manage async calls
-  --require      Requires a module before executing
-  -h, --help     Displays this message
+  --path                  Path to migration files  (default ./migrations)
+  --projectId             Target firebase project
+  --dryrun                Simulates changes
+  --forceWait             Forces waiting for migrations that do not strictly manage async calls
+  --require               Requires a module before executing
+  --migrationsCollection  Firestore collection to store migration state (default fireblaze)
+  -h, --help              Displays this message
 
 Examples
-  $ fireway migrate
-  $ fireway migrate --path=./my-migrations
-  $ fireway migrate --projectId=my-staging-id
-  $ fireway migrate --dryrun
-  $ fireway migrate --forceWait
-  $ fireway --require="ts-node/register" migrate
+  $ fireblaze migrate
+  $ fireblaze migrate --path=./my-migrations
+  $ fireblaze migrate --projectId=my-staging-id
+  $ fireblaze migrate --dryrun
+  $ fireblaze migrate --forceWait
+  $ fireblaze migrate --migrationsCollection=migrations
+  $ fireblaze --require="ts-node/register" migrate
 ```
 
 ## Migration file format
@@ -103,16 +105,16 @@ For type checking and Intellisense, there are two options:
    ```ts
     // ./migrations/v0.0.1__typescript-example.ts
 
-    import { MigrateOptions } from 'fireway';
+    import { MigrateOptions } from 'fireblaze';
 
     export async function migrate({firestore} : MigrateOptions) {
         await firestore.collection('data').doc('one').set({key: 'value'});
     };
    ```
-4. Run `fireway migrate` with the `require` option
+4. Run `fireblaze migrate` with the `require` option
 
    ```sh
-   $ fireway migrate --require="ts-node/register"
+   $ fireblaze migrate --require="ts-node/register"
    ```
 
 ### JSDoc
@@ -120,7 +122,7 @@ For type checking and Intellisense, there are two options:
 Alternatively, you can use [JSDoc](https://jsdoc.app/) for Intellisense
 
 ```js
-/** @param { import('fireway').MigrateOptions } */
+/** @param { import('fireblaze').MigrateOptions } */
 module.exports.migrate = async ({firestore}) => {
     // Intellisense is enabled
 };
@@ -128,27 +130,27 @@ module.exports.migrate = async ({firestore}) => {
 
 ## Running locally
 
-Typically, `fireway` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 
+Typically, `fireblaze` expects a `--projectId` option that lets you specify the Firebase project associated with your Firestore instance against which it performs migrations. 
 However, most likely you'll want to test your migration scripts _locally_ first before running them against your actual (presumably, production) instances. 
 If you are using the [Firestore emulator](https://firebase.google.com/docs/emulator-suite/connect_firestore), define the FIRESTORE_EMULATOR_HOST environment variable, e.g.:
 
 `export FIRESTORE_EMULATOR_HOST="localhost:8080"`
 
-The firestore node library will connect to your local instance. This way, you don't need a project ID and migrations will be run against your emulator instance. This works since `fireway` is built on the [firestore node library](https://www.npmjs.com/package/@google-cloud/firestore). 
+The firestore node library will connect to your local instance. This way, you don't need a project ID and migrations will be run against your emulator instance. This works since `fireblaze` is built on the [firestore node library](https://www.npmjs.com/package/@google-cloud/firestore). 
 
 ## Migration logic
 
 1. Gather all the migration files and sort them according to semver
-2. Find the last migration in the `fireway` collection
+2. Find the last migration in the `fireblaze` collection
 3. If the last migration failed, stop. (remove the failed migration result or restore the db to continue)
 4. Run the migration scripts since the last migration
 
 ## Migration results
 
-Migration results are stored in the `fireway` collection in `firestore`
+Migration results are stored in the `fireblaze` collection in `firestore`
 
 ```js
-// /fireway/3-0.0.1-example
+// /fireblaze/3-0.0.1-example
 
 {
   checksum: 'fdfe6a55a7c97a4346cb59871b4ce97c',
@@ -168,11 +170,11 @@ Migration results are stored in the `fireway` collection in `firestore`
 
 ```bash
 # To install packages and firestore emulator
-$ yarn
-$ yarn setup
+$ pnpm
+$ pnpm setup
 
 # To run tests
-$ yarn test
+$ pnpm test
 ```
 
 ## License

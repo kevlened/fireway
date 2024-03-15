@@ -28,11 +28,11 @@ function proxyWritableMethods() {
 	const ogCommit = WriteBatch.prototype._commit;
 	WriteBatch.prototype._commit = async function() {
 		// Empty the queue
-		while (this._fireway_queue && this._fireway_queue.length) {
-			this._fireway_queue.shift()();
+		while (this._fireblaze_queue && this._fireblaze_queue.length) {
+			this._fireblaze_queue.shift()();
 		}
 		for (const [stats, {dryrun}] of statsMap.entries()) {
-			if (this._firestore._fireway_stats === stats) {
+			if (this._firestore._fireblaze_stats === stats) {
 				if (dryrun) return [];
 			}
 		}
@@ -46,7 +46,7 @@ function proxyWritableMethods() {
 		obj[key] = function() {
 			const args = [...arguments];
 			for (const [stats, {log}] of statsMap.entries()) {
-				if (this._firestore._fireway_stats === stats) {
+				if (this._firestore._fireblaze_stats === stats) {
 
 					// If this is a batch
 					if (this instanceof WriteBatch) {
@@ -54,8 +54,8 @@ function proxyWritableMethods() {
 						if (doc && doc[skipWriteBatch]) {
 							delete doc[skipWriteBatch];
 						} else {
-							this._fireway_queue = this._fireway_queue || [];
-							this._fireway_queue.push(() => {
+							this._fireblaze_queue = this._fireblaze_queue || [];
+							this._fireblaze_queue.push(() => {
 								fn.call(this, args, (stats.frozen ? {} : stats), log);
 							});
 						}
@@ -118,7 +118,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 				if (fn && fn[dontTrack]) {
 					return;
 				}
-				
+
 				const name = call.getFileName();
 				if (
 					!name ||
@@ -160,7 +160,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 				const nodeVersion = semver.coerce(process.versions.node);
 				if (nodeVersion.major >= 12) {
 					console.warn(
-						'WARNING: fireway detected open async calls. Use --forceWait if you want to wait:',
+						'WARNING: fireblaze detected open async calls. Use --forceWait if you want to wait:',
 						Array.from(activeHandles.values())
 					);
 				}
@@ -173,7 +173,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 	const unhandled = reason => rejection = reason;
 	process.once('unhandledRejection', unhandled);
 	process.once('uncaughtException', unhandled);
-	
+
 	try {
 		const res = await fn();
 		await handleCheck();
@@ -197,7 +197,7 @@ async function trackAsync({log, file, forceWait}, fn) {
 }
 trackAsync[dontTrack] = true;
 
-async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false} = {}) {
+async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug = false, require: req, forceWait = false, migrationsCollection = 'fireblaze'} = {}) {
 	if (req) {
 		try {
 			require(req);
@@ -230,6 +230,11 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 		throw new Error(`No directory at ${dir}`);
 	}
 
+	// Ensure migration collection is provided and not an empty string
+	if (!migrationsCollection || !migrationsCollection.trim()) {
+		throw new Error(`Invalid migration collection name provided: ${migrationsCollection}`);
+	}
+
 	const filenames = [];
 	for (const file of await readdir(dir)) {
 		if (!(await stat(path.join(dir, file))).isDirectory()) {
@@ -242,7 +247,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	let files = filenames.map(filename => {
 		// Skip files that start with a dot
 		if (filename[0] === '.') return;
-		
+
 		const [filenameVersion, description] = filename.split('__');
 		const coerced = semver.coerce(filenameVersion);
 
@@ -286,7 +291,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	if (!storageBucket && projectId) {
 		storageBucket = `${projectId}.appspot.com`;
 	}
-	
+
 	const providedApp = app;
 	if (!app) {
 		app = admin.initializeApp({
@@ -297,9 +302,9 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 
 	// Use Firestore directly so we can mock for dryruns
 	const firestore = new Firestore({projectId});
-	firestore._fireway_stats = stats;
+	firestore._fireblaze_stats = stats;
 
-	const collection = firestore.collection('fireway');
+	const collection = firestore.collection(migrationsCollection);
 
 	// Get the latest migration
 	const result = await collection
@@ -330,7 +335,7 @@ async function migrate({path: dir, projectId, storageBucket, dryrun, app, debug 
 	for (const file of files) {
 		stats.executedFiles += 1;
 		log('Running', file.filename);
-		
+
 		let migration;
 		try {
 			migration = require(file.path);
