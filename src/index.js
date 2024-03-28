@@ -8,7 +8,13 @@ const admin = require('firebase-admin');
 //const {Firestore, WriteBatch, CollectionReference, FieldValue, FieldPath, Timestamp} = require('@google-cloud/firestore');
 const semver = require('semver');
 const asyncHooks = require('async_hooks');
-const callsites = require('callsites');
+let callsites;
+
+import('callsites').then((module) => {
+  callsites = module.default;
+}).catch((error) => {
+  console.error('Error importing `callsites` module:', error);
+});
 
 const readFile = util.promisify(fs.readFile);
 const readdir = util.promisify(fs.readdir);

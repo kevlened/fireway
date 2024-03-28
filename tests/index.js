@@ -1,7 +1,9 @@
 const test = require('tape');
 const firebase = require("@firebase/rules-unit-testing");
 const terminal = require('./console-tester');
+const admin = require("firebase-admin");
 let fireway = require('../');
+let app;
 
 function wrapper(fn) {
 	return async (t) => {
@@ -30,9 +32,16 @@ async function setup() {
 	terminal.reset();
 
 	const projectId = `fireway-test-${Date.now()}`;
-	const app = await firebase.initializeAdminApp({ projectId });
-	const firestore = app.firestore();
-	return { projectId, firestore, app };
+	const testEnv = await firebase.initializeTestEnvironment({
+		projectId: projectId,
+	  });
+	const env = testEnv.authenticatedContext('admin');
+	const firestore = env.firestore();
+	if (!app)
+	{
+	app = admin.initializeApp({ projectId });
+	}
+	return { projectId, firestore, app, };
 }
 
 async function assertData(t, firestore, path, value) {
